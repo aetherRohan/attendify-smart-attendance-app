@@ -1,5 +1,6 @@
 package com.rohan.attendify_smart_attendance.ui.auth
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -19,13 +20,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.rohan.attendify_smart_attendance.R
 import com.rohan.attendify_smart_attendance.model.UserRole
+import com.rohan.attendify_smart_attendance.ui.components.AnimatedTagline
+import com.rohan.attendify_smart_attendance.ui.components.AttendifyLogo
 import com.rohan.attendify_smart_attendance.ui.theme.AttendifyBlue
 import com.rohan.attendify_smart_attendance.ui.theme.AttendifyGreen
 
@@ -33,7 +38,6 @@ import com.rohan.attendify_smart_attendance.ui.theme.AttendifyGreen
 fun LoginScreen(
     onAuthButtonClick: (String, String, UserRole, String, Boolean) -> Unit
 ) {
-
     var isLoginMode by remember { mutableStateOf(true) }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -46,8 +50,8 @@ fun LoginScreen(
 
     if (!isLoginMode) {
         if (selectedRole == UserRole.STUDENT) {
-           roleColor= AttendifyGreen
-        } else  roleColor=AttendifyBlue
+            roleColor = AttendifyGreen
+        } else roleColor = AttendifyBlue
     }
 
     Column(
@@ -60,10 +64,17 @@ fun LoginScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        AttendifyLogo()
+        Spacer(modifier = Modifier.height(13.dp))
 
+        AnimatedTagline(
+            textColor = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Spacer(modifier = Modifier.height(29.dp))
         Text(
             text = if (isLoginMode) "Welcome Back" else "Create Account",
-            fontSize = 32.sp,
+            fontSize = 27.sp,
             fontWeight = FontWeight.Bold,
             color = if (isLoginMode) MaterialTheme.colorScheme.primary else roleColor
         )
@@ -172,7 +183,7 @@ fun LoginScreen(
 
 
 @Composable
-fun RoleToggle(currentRole: UserRole, onRoleSelected: (UserRole) -> Unit,roleColor: Color) {
+fun RoleToggle(currentRole: UserRole, onRoleSelected: (UserRole) -> Unit, roleColor: Color) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
