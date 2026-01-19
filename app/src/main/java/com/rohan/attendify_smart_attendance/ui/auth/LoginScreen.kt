@@ -26,6 +26,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rohan.attendify_smart_attendance.model.UserRole
+import com.rohan.attendify_smart_attendance.ui.theme.AttendifyBlue
+import com.rohan.attendify_smart_attendance.ui.theme.AttendifyGreen
 
 @Composable
 fun LoginScreen(
@@ -40,6 +42,13 @@ fun LoginScreen(
     var passwordVisible by remember { mutableStateOf(false) }
 
     val scrollState = rememberScrollState()
+    var roleColor by remember { mutableStateOf(Color.Unspecified) }
+
+    if (!isLoginMode) {
+        if (selectedRole == UserRole.STUDENT) {
+           roleColor= AttendifyGreen
+        } else  roleColor=AttendifyBlue
+    }
 
     Column(
         modifier = Modifier
@@ -52,17 +61,16 @@ fun LoginScreen(
         verticalArrangement = Arrangement.Center
     ) {
 
-
         Text(
             text = if (isLoginMode) "Welcome Back" else "Create Account",
             fontSize = 32.sp,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
+            color = if (isLoginMode) MaterialTheme.colorScheme.primary else roleColor
         )
         Text(
             text = if (isLoginMode) "Login to your account" else "Sign up to get started",
             fontSize = 14.sp,
-            color = Color.Gray
+            color = Color.Black
         )
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -72,7 +80,8 @@ fun LoginScreen(
 
             RoleToggle(
                 currentRole = selectedRole,
-                onRoleSelected = { newRole -> selectedRole = newRole }
+                onRoleSelected = { newRole -> selectedRole = newRole },
+                roleColor
             )
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -123,16 +132,18 @@ fun LoginScreen(
 
         Button(
             onClick = {
-
                 onAuthButtonClick(email, password, selectedRole, name, isLoginMode)
             },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(25.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (isLoginMode) MaterialTheme.colorScheme.primary else roleColor
+            )
         ) {
             Text(
-                text = if (isLoginMode) "Login" else "Sign Up as ${selectedRole.name}",
+                text = if (isLoginMode) "Login" else "Continue as ${selectedRole.name}",
                 fontSize = 18.sp
             )
         }
@@ -148,7 +159,7 @@ fun LoginScreen(
         ) {
             Text(
                 text = if (isLoginMode) "Don't have an account? " else "Already have an account? ",
-                color = Color.Gray
+                color = Color.Black
             )
             Text(
                 text = if (isLoginMode) "Sign Up" else "Login",
@@ -161,7 +172,7 @@ fun LoginScreen(
 
 
 @Composable
-fun RoleToggle(currentRole: UserRole, onRoleSelected: (UserRole) -> Unit) {
+fun RoleToggle(currentRole: UserRole, onRoleSelected: (UserRole) -> Unit,roleColor: Color) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -173,7 +184,7 @@ fun RoleToggle(currentRole: UserRole, onRoleSelected: (UserRole) -> Unit) {
         @Composable
         fun RoleButton(role: UserRole, label: String) {
             val isSelected = currentRole == role
-            val bgColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent
+            val bgColor: Color = if (isSelected) roleColor else Color.Transparent
             val textColor = if (isSelected) Color.White else Color.Gray
 
             Box(
