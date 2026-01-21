@@ -86,7 +86,6 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-
         if (!isLoginMode) {
 
             RoleToggle(

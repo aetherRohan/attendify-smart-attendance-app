@@ -24,13 +24,7 @@ class MainActivity : ComponentActivity() {
                 LoginScreen(
                     onAuthButtonClick = { email, password, role, name, isLogin ->
 
-                        if (isLogin) {
-                            println("LOGIN REQUEST: $email")
 
-                        } else {
-                            println("SIGNUP REQUEST: $email, Name: $name, Role: $role")
-
-                        }
                     }
                 )
             }
