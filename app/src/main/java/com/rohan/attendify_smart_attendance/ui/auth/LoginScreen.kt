@@ -1,6 +1,6 @@
 package com.rohan.attendify_smart_attendance.ui.auth
 
-import androidx.compose.foundation.Image
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -20,24 +20,72 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.rohan.attendify_smart_attendance.R
-import com.rohan.attendify_smart_attendance.model.UserRole
+import com.rohan.attendify_smart_attendance.entity.UserRole
 import com.rohan.attendify_smart_attendance.ui.components.AnimatedTagline
 import com.rohan.attendify_smart_attendance.ui.components.AttendifyLogo
 import com.rohan.attendify_smart_attendance.ui.theme.AttendifyBlue
 import com.rohan.attendify_smart_attendance.ui.theme.AttendifyGreen
+import com.rohan.attendify_smart_attendance.utils.Resource
+import com.rohan.attendify_smart_attendance.viewModel.AuthViewModel
+
+
+
+//Logic Layer
+@Composable
+fun LoginRoute(
+    viewModel: AuthViewModel,
+    onNavigateToHome: (Any?) -> Unit
+) {
+    val context = LocalContext.current
+    val authState by viewModel.authState.collectAsState()
+
+    // Handle Side Effects (Toasts, Navigation)
+    LaunchedEffect(authState) {
+        when (val state = authState) {
+            is Resource.Success -> {
+                onNavigateToHome(state.data)
+            }
+            is Resource.Error -> {
+                Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
+            }
+            else -> {}
+        }
+    }
+
+    //  Render  UI
+    Box(modifier = Modifier.fillMaxSize()) {
+        LoginScreen(
+            isLoading = authState is Resource.Loading,
+            onAuthButtonClick = { email, password, role, name, isLogin ->
+                if (isLogin) {
+                    viewModel.loginUser(email, password)
+                } else {
+                    viewModel.signupUser(
+                        role = role.name,
+                        name = name,
+                        email = email,
+                        pass = password
+                    )
+                }
+            }
+        )
+    }
+}
+
 
 @Composable
-fun LoginScreen(
+private fun LoginScreen(
+    isLoading: Boolean,
     onAuthButtonClick: (String, String, UserRole, String, Boolean) -> Unit
 ) {
+
     var isLoginMode by remember { mutableStateOf(true) }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -53,17 +101,21 @@ fun LoginScreen(
             roleColor = AttendifyGreen
         } else roleColor = AttendifyBlue
     }
-
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(24.dp)
-            .imePadding()
-            .verticalScroll(scrollState),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+            .imePadding(), // ✅ Moved here: Shrinks the outer container safely
+        contentAlignment = Alignment.Center // ✅ Moved here: Centers the Column
     ) {
+        // 2. Column ONLY handles Scrolling now
+        Column(
+            modifier = Modifier
+                .verticalScroll(scrollState)
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+            // verticalArrangement = Arrangement.Center (DELETED THIS LINE)
+        ) {
         AttendifyLogo()
         Spacer(modifier = Modifier.height(13.dp))
 
@@ -139,7 +191,7 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-
+        //Login or Signup Button
         Button(
             onClick = {
                 onAuthButtonClick(email, password, selectedRole, name, isLoginMode)
@@ -148,36 +200,45 @@ fun LoginScreen(
                 .fillMaxWidth()
                 .height(50.dp),
             shape = RoundedCornerShape(25.dp),
+            enabled = !isLoading,
             colors = ButtonDefaults.buttonColors(
                 containerColor = if (isLoginMode) MaterialTheme.colorScheme.primary else roleColor
             )
         ) {
-            Text(
-                text = if (isLoginMode) "Login" else "Continue as ${selectedRole.name}",
-                fontSize = 18.sp
-            )
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = Color.White,
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Text(
+                    text = if (isLoginMode) "Login" else "Continue as ${selectedRole.name}",
+                    fontSize = 18.sp
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // --- The Toggle Text Button ---
+        // Login-Signup Toggle  Button
         Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.clickable {
-                isLoginMode = !isLoginMode
-            }
+            verticalAlignment = Alignment.CenterVertically
+
         ) {
             Text(
                 text = if (isLoginMode) "Don't have an account? " else "Already have an account? ",
                 color = Color.Black
             )
             Text(
+                modifier = Modifier.clickable { isLoginMode = !isLoginMode },
                 text = if (isLoginMode) "Sign Up" else "Login",
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
             )
         }
     }
+}
 }
 
 
