@@ -1,5 +1,4 @@
-package com.rohan.attendify_smart_attendance.viewModel
-
+package com.rohan.attendify_smart_attendance.ui.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

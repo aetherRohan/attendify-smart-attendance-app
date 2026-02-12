@@ -33,7 +33,7 @@ import com.rohan.attendify_smart_attendance.ui.components.AttendifyLogo
 import com.rohan.attendify_smart_attendance.ui.theme.AttendifyBlue
 import com.rohan.attendify_smart_attendance.ui.theme.AttendifyGreen
 import com.rohan.attendify_smart_attendance.utils.Resource
-import com.rohan.attendify_smart_attendance.viewModel.AuthViewModel
+import com.rohan.attendify_smart_attendance.ui.auth.AuthViewModel
 
 
 
@@ -46,7 +46,7 @@ fun LoginRoute(
     val context = LocalContext.current
     val authState by viewModel.authState.collectAsState()
 
-    // Handle Side Effects (Toasts, Navigation)
+    // Handle Toasts, Navigation
     LaunchedEffect(authState) {
         when (val state = authState) {
             is Resource.Success -> {
@@ -105,16 +105,16 @@ private fun LoginScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .imePadding(), // ✅ Moved here: Shrinks the outer container safely
-        contentAlignment = Alignment.Center // ✅ Moved here: Centers the Column
+            .imePadding(),
+        contentAlignment = Alignment.Center
     ) {
-        // 2. Column ONLY handles Scrolling now
+
         Column(
             modifier = Modifier
                 .verticalScroll(scrollState)
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
-            // verticalArrangement = Arrangement.Center (DELETED THIS LINE)
+
         ) {
         AttendifyLogo()
         Spacer(modifier = Modifier.height(13.dp))
