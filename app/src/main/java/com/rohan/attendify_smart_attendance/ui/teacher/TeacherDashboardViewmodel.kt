@@ -16,6 +16,7 @@ class TeacherDashboardViewModel : ViewModel() {
             TeacherUiState(
                 isScanning = status.isRunning,
                 buttonText = if (status.isRunning) "STOP SESSION" else "START SESSION",
+                numberOfStudent = status.studentsFoundCount,
                 statsMessage = if (status.isRunning) ""
                 else "Ready to begin attendance"
             )
@@ -29,5 +30,6 @@ class TeacherDashboardViewModel : ViewModel() {
 data class TeacherUiState(
     val isScanning: Boolean = false,
     val buttonText: String = "START SESSION",
-    val statsMessage: String = "Initializing..."
+    val statsMessage: String = "Initializing...",
+    val numberOfStudent:Int=0
 )

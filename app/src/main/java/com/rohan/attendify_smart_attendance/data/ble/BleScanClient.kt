@@ -43,7 +43,8 @@ class BleScanClient(
             .build()
 
 
-        val filters = listOf(filter)
+        //EMPTY LIST FOR TESTING
+        val filters = listOf<ScanFilter>()
 
         val settings = ScanSettings.Builder()
             .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
@@ -62,6 +63,12 @@ class BleScanClient(
                 val scanRecord = result.scanRecord ?: return
                 // 2. Extract Data specifically for YOUR Service UUID
                 // (This filters out random Fitbits or headphones nearby)
+
+                //DEMO
+                val device = result.device
+                val name = scanRecord.deviceName ?: device.name ?: "Unknown"
+                _scanResults.tryEmit(name)
+
                 val serviceData = scanRecord.getServiceData(ParcelUuid(SERVICE_UUID))
                 // 3. Validation: Check if data exists and is not empty
                 if (serviceData != null && serviceData.isNotEmpty()) {

@@ -13,9 +13,10 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun TeacherDashboardScreen(
+    name: String,
     viewModel: TeacherDashboardViewModel,
     onToggle: (Boolean) -> Unit
-) {
+){
     val state by viewModel.uiState.collectAsState()
 
     Column(
@@ -24,7 +25,12 @@ fun TeacherDashboardScreen(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Teacher Dashboard",
+            text = "Welcome $name",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            text = state.numberOfStudent.toString(),
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold
         )

@@ -15,8 +15,10 @@ class TeacherDashboardActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val name = intent.getStringExtra("USER_NAME") ?: "Teacher"
         setContent {
             TeacherDashboardScreen(
+                name=name,
                 viewModel = viewModel,
                 onToggle = { isCurrentlyScanning ->
                     handleToggle(isCurrentlyScanning)

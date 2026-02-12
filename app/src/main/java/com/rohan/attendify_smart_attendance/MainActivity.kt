@@ -44,6 +44,7 @@ class MainActivity : ComponentActivity() {
                             // 2. Create the Intent
                             val intent = Intent(this, destinationActivity).apply {
                                 putExtra("USER_NAME", user.name)
+                                putExtra("USER_ROLE",user.role)
 //                                putExtra("USER_EMAIL", user.email)
                                 // Add flags to prevent the user from going back to the Login screen
                                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
