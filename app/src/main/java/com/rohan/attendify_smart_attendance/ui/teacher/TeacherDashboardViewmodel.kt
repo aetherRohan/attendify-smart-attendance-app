@@ -7,9 +7,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-
 class TeacherDashboardViewModel : ViewModel() {
-
     // Transform the controller's status into a clean state for the UI
     val uiState: StateFlow<TeacherUiState> = TeacherSessionController.status
         .map { status ->
@@ -17,6 +15,7 @@ class TeacherDashboardViewModel : ViewModel() {
                 isScanning = status.isRunning,
                 buttonText = if (status.isRunning) "STOP SESSION" else "START SESSION",
                 numberOfStudent = status.studentsFoundCount,
+                studentsList = status.studentList,
                 statsMessage = if (status.isRunning) ""
                 else "Ready to begin attendance"
             )
@@ -26,10 +25,10 @@ class TeacherDashboardViewModel : ViewModel() {
             initialValue = TeacherUiState()
         )
 }
-
 data class TeacherUiState(
     val isScanning: Boolean = false,
     val buttonText: String = "START SESSION",
     val statsMessage: String = "Initializing...",
-    val numberOfStudent:Int=0
+    val numberOfStudent:Int=0 ,
+    val studentsList: List<String> =emptyList()
 )

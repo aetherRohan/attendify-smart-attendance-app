@@ -61,13 +61,12 @@ class BleScanClient(
             override fun onScanResult(callbackType: Int, result: ScanResult) {
                 // 1. Get the Scan Record (The payload)
                 val scanRecord = result.scanRecord ?: return
-                // 2. Extract Data specifically for YOUR Service UUID
-                // (This filters out random Fitbits or headphones nearby)
 
                 //DEMO
                 val device = result.device
                 val name = scanRecord.deviceName ?: device.name ?: "Unknown"
                 _scanResults.tryEmit(name)
+//               Log.e("DeviceName",name)
 
                 val serviceData = scanRecord.getServiceData(ParcelUuid(SERVICE_UUID))
                 // 3. Validation: Check if data exists and is not empty

@@ -1,6 +1,8 @@
 package com.rohan.attendify_smart_attendance.ui.teacher
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -20,27 +22,26 @@ fun TeacherDashboardScreen(
     val state by viewModel.uiState.collectAsState()
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(24.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        // CHANGED: Top alignment so items start from top, pushing list down
+        verticalArrangement = Arrangement.Top
     ) {
+        // 1. WELCOME HEADER
         Text(
             text = "Welcome $name",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold
         )
-        Text(
-            text = state.numberOfStudent.toString(),
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
-        )
 
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
-        // Large circular toggle button
+        // 2. THE MAIN BUTTON (Start/Stop)
         Button(
             onClick = { onToggle(state.isScanning) },
-            modifier = Modifier.size(200.dp),
+            modifier = Modifier.size(160.dp), // Increased size slightly for better touch
             shape = CircleShape,
             colors = ButtonDefaults.buttonColors(
                 containerColor = if (state.isScanning) Color.Red else Color(0xFF4CAF50)
@@ -49,14 +50,48 @@ fun TeacherDashboardScreen(
             Text(state.buttonText, fontSize = 18.sp, fontWeight = FontWeight.Bold)
         }
 
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
-        Card(modifier = Modifier.fillMaxWidth()) {
-            Text(
-                text = state.statsMessage,
-                modifier = Modifier.padding(16.dp),
-                style = MaterialTheme.typography.bodyLarge
-            )
+        // 3. STATUS & COUNT
+        Text(
+            text = "Status: ${state.statsMessage}",
+            style = MaterialTheme.typography.bodyLarge,
+            color = Color.Gray
+        )
+        Text(
+            text = "Total Found: ${state.numberOfStudent}",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // 4. LIST HEADER
+        Text(
+            text = "Students in the Class",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.align(Alignment.Start) // Align header to left
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // 5. THE LIST (Fills remaining space)
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f), // <--- CRITICAL: This makes the list expand to fill space
+            contentPadding = PaddingValues(bottom = 16.dp)
+        ) {
+            items(state.studentsList) { studentName ->
+                Text(
+                    text = studentName,
+                    modifier = Modifier.padding(vertical = 12.dp, horizontal = 4.dp),
+                    fontSize = 18.sp
+                )
+                HorizontalDivider()
+            }
         }
     }
 }

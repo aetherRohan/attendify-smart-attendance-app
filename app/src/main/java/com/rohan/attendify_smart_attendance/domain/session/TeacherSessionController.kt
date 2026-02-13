@@ -10,21 +10,13 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-/**
- * TeacherSessionController: The "Master Clock" for the classroom.
- * Logic:
- * - 1 Minute Hardware Cycle: 30s Scan / 30s Rest.
- * - 5 Minute Reporting Window: Accumulates unique Student IDs.
- * - One-Hit Policy: If a student is found ONCE in 5 mins, they are marked PRESENT for that window.
- */
+
 object TeacherSessionController {
 
     private const val TAG = "SessionController"
-
     private const val SCAN_DURATION = 30000L // 30s
     private const val REST_DURATION = 30000L // 30s
     private const val CYCLES_PER_WINDOW = 5  // 5 Minutes Total
-
     private var bleClient: BleScanClient? = null
     private var sessionScope: CoroutineScope? = null
 
@@ -32,7 +24,8 @@ object TeacherSessionController {
     data class SessionStatus(
         val isRunning: Boolean = false,
         val currentWindowIndex: Int = 1,
-        val studentsFoundCount: Int = 0
+        val studentsFoundCount: Int = 0,
+        val studentList: List<String> = emptyList()
     )
 
     private val _status = MutableStateFlow(SessionStatus())
@@ -58,7 +51,7 @@ object TeacherSessionController {
         // Reset local state
         microCycleCounter = 0
         studentsInCurrentWindow.clear()
-        _status.value = SessionStatus(isRunning = true)
+        _status.value = SessionStatus(isRunning = true, studentList = studentsInCurrentWindow.toList())
 
         sessionScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
@@ -98,8 +91,11 @@ object TeacherSessionController {
                 // ONE-HIT LOGIC: If new for this 5-min window, add them.
                 if (studentsInCurrentWindow.add(studentId)) {
                     _status.value = _status.value.copy(
-                        studentsFoundCount = studentsInCurrentWindow.size
+                        studentsFoundCount = studentsInCurrentWindow.size,
+                        studentList = studentsInCurrentWindow.sorted()
                     )
+                    Log.e("DeviceName",studentId)
+
                 }
             }
         }?.launchIn(sessionScope!!)
@@ -126,7 +122,6 @@ object TeacherSessionController {
                 currentWindowIndex = _status.value.currentWindowIndex + 1
             )
         }
-
         // --- PHASE 3: REST ---
         delay(REST_DURATION)
     }
