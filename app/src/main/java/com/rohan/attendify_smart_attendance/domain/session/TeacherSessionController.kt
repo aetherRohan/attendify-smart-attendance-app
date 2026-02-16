@@ -9,8 +9,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-
-
 object TeacherSessionController {
 
     private const val TAG = "SessionController"
@@ -40,7 +38,6 @@ object TeacherSessionController {
     fun initialize(client: BleScanClient) {
         this.bleClient = client
     }
-
 
     fun startSession() {
         if (_status.value.isRunning) return
@@ -103,15 +100,13 @@ object TeacherSessionController {
         bleClient?.startScanning()
         delay(SCAN_DURATION)
         bleClient?.stopScanning()
-
-        // Stop the collector until the next 30s scan starts
         collectionJob?.cancel()
 
-        // --- PHASE 2: WINDOW MANAGEMENT ---
+        // WINDOW MANAGEMENT ---
         microCycleCounter++
 
         if (microCycleCounter >= CYCLES_PER_WINDOW) {
-            // 5 Minutes reached. Send window report.
+            // 5 Minutes reached ,send window report
             uploadWindowData(_status.value.currentWindowIndex, studentsInCurrentWindow.toList())
 
             // Reset for next 5-min block
@@ -122,7 +117,7 @@ object TeacherSessionController {
                 currentWindowIndex = _status.value.currentWindowIndex + 1
             )
         }
-        // --- PHASE 3: REST ---
+        //REST ---
         delay(REST_DURATION)
     }
 
@@ -139,6 +134,7 @@ object TeacherSessionController {
         Log.i(TAG, "UPLOADING SUMMARY | Duration: $duration min | Windows: $windows")
 
         // api.post("/attendance/end", { classId: id, totalDuration: duration, totalWindows: windows })
+        // demo
         Thread.sleep(1000)
     }
 }

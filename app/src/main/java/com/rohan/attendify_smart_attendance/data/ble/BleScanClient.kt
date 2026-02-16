@@ -57,14 +57,8 @@ class BleScanClient(
         scanCallback = object : ScanCallback() {
 
             override fun onScanResult(callbackType: Int, result: ScanResult) {
-                // 1. Get the Scan Record (The payload)
+                //  Get the Scan Record (The payload)
                 val scanRecord = result.scanRecord ?: return
-
-//                //DEMO
-//                val device = result.device
-//                val name = scanRecord.deviceName ?: device.name ?: "Unknown"
-//                _scanResults.tryEmit(name)
-////               Log.e("DeviceName",name)
 
                 val serviceData = scanRecord.getServiceData(SERVICE_UUID)
                 // 3. Validation: Check if data exists and is not empty

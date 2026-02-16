@@ -42,13 +42,14 @@ class TeacherScanService : Service(){
 
     override fun onBind(intent: Intent?): IBinder? = null
 
-    // --- LOGIC: Only handling the Android 14 Type check here ---
     private fun startForegroundServicePromotion() {
-        // 1. Get the Notification from Helper
-        val notification = NotificationHelper.createAttendanceNotification(this)
-        val notificationId = 1
 
-        // 2. Start Foreground with Type Safety
+        val notification = NotificationHelper.createAttendanceNotification(this,
+            isTeacher = true,
+            statusText = "Marking Attendance")
+
+        val notificationId = 102
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             startForeground(
                 notificationId,
