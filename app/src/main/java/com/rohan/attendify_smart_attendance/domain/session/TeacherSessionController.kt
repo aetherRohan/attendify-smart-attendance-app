@@ -2,32 +2,20 @@ package com.rohan.attendify_smart_attendance.domain.session
 
 import android.util.Log
 import com.rohan.attendify_smart_attendance.data.ble.BleScanClient
+import com.rohan.attendify_smart_attendance.repository.AttendanceRepository
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-object TeacherSessionController {
+class TeacherSessionController {
 
-    private const val TAG = "SessionController"
-    private const val SCAN_DURATION = 30000L // 30s
-    private const val REST_DURATION = 30000L // 30s
-    private const val CYCLES_PER_WINDOW = 5  // 5 Minutes Total
     private var bleClient: BleScanClient? = null
     private var sessionScope: CoroutineScope? = null
 
-    // --- STATE MANAGEMENT ---
-    data class SessionStatus(
-        val isRunning: Boolean = false,
-        val currentWindowIndex: Int = 1,
-        val studentsFoundCount: Int = 0,
-        val studentList: List<String> = emptyList()
-    )
+    private var currentWindowIndex: Int = 0
+    private var isRunning: Boolean = false
 
-    private val _status = MutableStateFlow(SessionStatus())
-    val status = _status.asStateFlow()
 
     private val dataMutex = Mutex()
     private val studentsInCurrentWindow = HashSet<String>()
@@ -35,12 +23,22 @@ object TeacherSessionController {
     private var microCycleCounter = 0
     private var sessionStartTime: Long = 0
 
-    fun initialize(client: BleScanClient) {
+    fun initialize(client: BleScanClient,sessionScope: CoroutineScope) {
         this.bleClient = client
+        this.sessionScope=sessionScope
+    }
+
+    private fun updateState(isRunning: Boolean, count: Int, list: List<String>) {
+        val newStatus = SessionStatus(
+            isRunning = isRunning,
+            studentsFoundCount = count,
+            studentList = list
+        )
+        AttendanceRepository.updateStatus(newStatus)
     }
 
     fun startSession() {
-        if (_status.value.isRunning) return
+        if (isRunning) return
 
         Log.i(TAG, "Starting Session: 5-min Windows, One-Hit Threshold")
         sessionStartTime = System.currentTimeMillis()
@@ -48,9 +46,13 @@ object TeacherSessionController {
         // Reset local state
         microCycleCounter = 0
         studentsInCurrentWindow.clear()
-        _status.value = SessionStatus(isRunning = true, studentList = studentsInCurrentWindow.toList())
 
-        sessionScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+        updateState(
+            isRunning = true,
+            count = studentsInCurrentWindow.size,
+           list =  studentsInCurrentWindow.toList()
+        )
+
 
         sessionScope?.launch {
             while (isActive) {
@@ -61,16 +63,20 @@ object TeacherSessionController {
 
 
     fun stopSession(classId: String) {
-        if (!_status.value.isRunning) return
+        if (isRunning) return
 
         val durationMin = (System.currentTimeMillis() - sessionStartTime) / 60000
-        val finalWindowCount = _status.value.currentWindowIndex - 1
+        val finalWindowCount = if (currentWindowIndex>1) currentWindowIndex - 1 else currentWindowIndex
 
         sessionScope?.cancel()
         sessionScope = null
         bleClient?.stopScanning()
 
-        _status.value = SessionStatus(isRunning = false)
+        updateState(
+            isRunning = false,
+            count = studentsInCurrentWindow.size,
+            list =  studentsInCurrentWindow.sorted()
+        )
 
         // SEND FINAL SUMMARY
         runBlocking {
@@ -79,20 +85,18 @@ object TeacherSessionController {
     }
 
 
-     // Core Loop: 1 Minute (30s Scan + 30s Rest)
-
     private suspend fun runOneMicroCycle() {
         // --- PHASE 1: SCAN & COLLECT ---
         val collectionJob = bleClient?.scanResults?.onEach { studentId ->
             dataMutex.withLock {
                 // ONE-HIT LOGIC: If new for this 5-min window, add them.
                 if (studentsInCurrentWindow.add(studentId)) {
-                    _status.value = _status.value.copy(
-                        studentsFoundCount = studentsInCurrentWindow.size,
-                        studentList = studentsInCurrentWindow.sorted()
+                    updateState(
+                        isRunning = true,
+                        count = studentsInCurrentWindow.size,
+                        list =  studentsInCurrentWindow.sorted()
                     )
                     Log.e("DeviceName",studentId)
-
                 }
             }
         }?.launchIn(sessionScope!!)
@@ -107,21 +111,17 @@ object TeacherSessionController {
 
         if (microCycleCounter >= CYCLES_PER_WINDOW) {
             // 5 Minutes reached ,send window report
-            uploadWindowData(_status.value.currentWindowIndex, studentsInCurrentWindow.toList())
+            uploadWindowData(currentWindowIndex, studentsInCurrentWindow.sorted())
 
             // Reset for next 5-min block
             microCycleCounter = 0
             dataMutex.withLock { studentsInCurrentWindow.clear() }
-
-            _status.value = _status.value.copy(
-                currentWindowIndex = _status.value.currentWindowIndex + 1
-            )
+                currentWindowIndex =currentWindowIndex + 1
         }
         //REST ---
         delay(REST_DURATION)
     }
 
-    // --- API MOCKS (Use Retrofit in Production) ---
 
     private fun uploadWindowData(index: Int, students: List<String>) {
         CoroutineScope(Dispatchers.IO).launch {
@@ -130,11 +130,26 @@ object TeacherSessionController {
         }
     }
 
-    private suspend fun uploadClassSummary(id: String, duration: Long, windows: Int) {
+    private  fun uploadClassSummary(id: String, duration: Long, windows: Int) {
         Log.i(TAG, "UPLOADING SUMMARY | Duration: $duration min | Windows: $windows")
 
         // api.post("/attendance/end", { classId: id, totalDuration: duration, totalWindows: windows })
         // demo
         Thread.sleep(1000)
     }
+
+
+    companion object {
+        private const val TAG = "SessionController"
+        // Time constants are clearer when grouped here
+        private const val SCAN_DURATION = 30_000L
+        private const val REST_DURATION = 30_000L
+        private const val CYCLES_PER_WINDOW = 5
+    }
+
+    data class SessionStatus(
+        val isRunning: Boolean = false,
+        val studentsFoundCount: Int = 0,
+        val studentList: List<String> = emptyList()
+    )
 }

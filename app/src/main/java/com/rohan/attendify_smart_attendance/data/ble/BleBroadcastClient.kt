@@ -10,10 +10,13 @@ import android.bluetooth.le.BluetoothLeAdvertiser
 import android.content.Context
 import android.os.ParcelUuid
 import android.util.Log
+import kotlinx.coroutines.CoroutineScope
 import java.nio.ByteBuffer
 import java.util.UUID
 
-class BleBroadcastClient(private val context: Context) {
+class BleBroadcastClient(private val context: Context,
+    private val scope: CoroutineScope
+    ) {
 
     private val bluetoothAdapter: BluetoothAdapter? by lazy {
         val manager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
@@ -28,7 +31,7 @@ class BleBroadcastClient(private val context: Context) {
 
 
     @SuppressLint("MissingPermission")
-    fun startAdvertising(studentId: String): Boolean {
+    fun startAttendance(studentId: String): Boolean {
         if (advertiser == null) {
             Log.e("BleAdvertiser", "❌ CRITICAL: Device does not support Bluetooth LE Advertising.")
             return false
@@ -37,7 +40,7 @@ class BleBroadcastClient(private val context: Context) {
         // Prevent duplicate broadcasts
         if (advertiseCallback != null) {
             Log.w("BleAdvertiser", "⚠️ Advertising already active. Stopping previous session first.")
-            stopAdvertising()
+            stopAttendance()
         }
 
         try {
@@ -95,7 +98,7 @@ class BleBroadcastClient(private val context: Context) {
 
 
     @SuppressLint("MissingPermission")
-    fun stopAdvertising(){
+    fun stopAttendance(){
         if (advertiser == null) return
 
         try {

@@ -16,27 +16,27 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 
 class TeacherScanService : Service(){
-
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private val teacherSessionController = TeacherSessionController()
 
     override fun onCreate() {
         super.onCreate()
         val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         val bleClient = BleScanClient(bluetoothManager.adapter, serviceScope)
-        TeacherSessionController.initialize(bleClient)
+        teacherSessionController.initialize(bleClient,serviceScope)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         // --- CLEANER: Delegate to Helper ---
         startForegroundServicePromotion()
 
-        TeacherSessionController.startSession()
+        teacherSessionController.startSession()
         return START_STICKY
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        TeacherSessionController.stopSession("0000180A-0000-1000-8000-00805F9B34FB")
+        teacherSessionController.stopSession("0000180A-0000-1000-8000-00805F9B34FB")
         serviceScope.cancel()
     }
 

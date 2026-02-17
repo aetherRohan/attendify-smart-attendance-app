@@ -3,13 +3,14 @@ package com.rohan.attendify_smart_attendance.ui.teacher
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rohan.attendify_smart_attendance.domain.session.TeacherSessionController
+import com.rohan.attendify_smart_attendance.repository.AttendanceRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 class TeacherDashboardViewModel : ViewModel() {
     // Transform the controller's status into a clean state for the UI
-    val uiState: StateFlow<TeacherUiState> = TeacherSessionController.status
+    val uiState: StateFlow<TeacherUiState> = AttendanceRepository.sessionStatus
         .map { status ->
             TeacherUiState(
                 isScanning = status.isRunning,

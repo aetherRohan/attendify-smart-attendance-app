@@ -11,7 +11,7 @@ import java.util.UUID
 
 class BleScanClient(
     private val bluetoothAdapter: BluetoothAdapter?,
-    private val scope: CoroutineScope // Pass a scope (e.g., lifecycleScope or explicit)
+    private val scope: CoroutineScope
 ) {
     private val scanner: BluetoothLeScanner?
         get() = bluetoothAdapter?.bluetoothLeScanner
@@ -116,7 +116,6 @@ class BleScanClient(
                 restartAttempts++
                 Log.w("BleClient", "Attempting recovery #$restartAttempts...")
 
-                // 3. Enterprise Safety: Add Delay before retry
                 scope.launch {
                     stopScanning()
                     delay(500) // Give the hardware stack 500ms to breathe
