@@ -44,11 +44,25 @@
         <activity android:name=".ui.teacher.TeacherDashboardActivity"
             android:exported="true"/>
 
+        <activity android:name=".ui.student.StudentDashboardActivity"
+            android:exported="true"/>
+
         <service
             android:name=".service.TeacherScanService"
             android:exported="false"
             android:foregroundServiceType="connectedDevice">
         </service>
+
+        <service
+            android:name=".service.StudentBroadcastService"
+            android:exported="false"
+            android:enabled="true"
+            android:foregroundServiceType="connectedDevice">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Bluetooth Broadcasting" />
+        </service>
+
     </application>
 
 </manifest>
