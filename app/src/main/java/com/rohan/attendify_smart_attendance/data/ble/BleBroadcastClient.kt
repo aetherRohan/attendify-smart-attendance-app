@@ -14,9 +14,7 @@ import kotlinx.coroutines.CoroutineScope
 import java.nio.ByteBuffer
 import java.util.UUID
 
-class BleBroadcastClient(private val context: Context,
-    private val scope: CoroutineScope
-    ) {
+class BleBroadcastClient(private val context: Context) {
 
     private val bluetoothAdapter: BluetoothAdapter? by lazy {
         val manager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager

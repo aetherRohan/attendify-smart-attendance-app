@@ -1,97 +1,100 @@
 package com.rohan.attendify_smart_attendance.domain.session
 
+import android.util.Log
 import com.rohan.attendify_smart_attendance.data.ble.BleBroadcastClient
-import com.rohan.attendify_smart_attendance.entity.ConnectionStatus
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 
+import com.rohan.attendify_smart_attendance.repository.StudentSessionRepository
+import kotlinx.coroutines.*
 
+class StudentSessionController(
+    private val bleBroadcast: BleBroadcastClient,
+    private val sessionScope: CoroutineScope
+) {
 
-class StudentSessionController{
+    private var currentStatus = StudentSessionState()
+    private var sessionJob: Job? = null
 
-    private var serviceScope : CoroutineScope?=null
-    private  var bleBroadcast: BleBroadcastClient?=null
-
-
-    private val BROADCAST_WINDOW = 3 * 60 * 1000L // 3 Minutes Broadcasting
-    private val REST_WINDOW = 2 * 60 * 1000L      // 2 Minutes Resting
-    private val MAX_CLASS_DURATION = 90 * 60 * 1000L // 90 Minutes (Safety Cut-off)
+    companion object {
+        private const val BROADCAST_WINDOW = 3 * 60_000L // 3 Minutes
+        private const val REST_WINDOW = 2 * 60_000L      // 2 Minutes
+        private const val MAX_SESSION_TIME = 90 * 60_000L // 90 Minutes Safety
+    }
 
     data class StudentSessionState(
         val isBroadcasting: Boolean = false,
-        val studentId: String? = null,
-        val classId: String? = null,
         val startTime: Long = 0L,
         val errorMessage: String? = null,
-        val connectionStatus: ConnectionStatus = ConnectionStatus.IDLE
     )
 
-    fun initialize(bleBroadcast: BleBroadcastClient,scope: CoroutineScope){
-        this.bleBroadcast=bleBroadcast
-        this.serviceScope=scope
+    private fun updateState() {
+        StudentSessionRepository.updateStatus(currentStatus)
     }
 
-
-
-    private val _state = MutableStateFlow(StudentSessionState())
-    val state: StateFlow<StudentSessionState> = _state.asStateFlow()
-
-    private var timerJob: Job? = null
-    // MATCH THIS WITH YOUR SERVICE: 90 Minutes Safety Stop
-    private val MAX_SESSION_TIME = 90 * 60 * 1000L
-
-
-
-
-
     fun startAttendance(classId: String, studentId: String) {
+        Log.d("StudentController","start attendance session controller reached")
         if (studentId.isBlank()) {
-            _state.update { it.copy(errorMessage = "Invalid Student ID") }
+            currentStatus = currentStatus.copy(errorMessage = "Invalid Student ID")
+            updateState()
             return
         }
 
-        // 1. Update State immediately for UI responsiveness
-        val currentTime = System.currentTimeMillis()
-        _state.update {
-            it.copy(
-                isBroadcasting = true,
-                classId = classId,
-                studentId = studentId,
-                startTime = currentTime,
-                connectionStatus = ConnectionStatus.BROADCASTING,
-                errorMessage = null
-            )
+        // Prevent double starting
+        if (currentStatus.isBroadcasting) return
+
+        val startTime = System.currentTimeMillis()
+        val endTime = startTime + MAX_SESSION_TIME
+
+        // Initial State Update
+        currentStatus = currentStatus.copy(
+            isBroadcasting = true,
+            startTime = startTime,
+            errorMessage = null,
+        )
+        updateState()
+
+        sessionJob = sessionScope.launch {
+            Log.d("StudentController", "Session Started. Max Duration: 90min")
+
+            while (isActive && System.currentTimeMillis() < endTime) {
+                // BROADCAST =3 min
+                startAdvertisingHelper(studentId)
+                delay(BROADCAST_WINDOW)
+
+                //  REST =2 min
+                if (System.currentTimeMillis() < endTime) {
+                    delay(REST_WINDOW)
+                }
+            }
+            stopAttendance()
         }
-        bleBroadcast?.startAttendance(studentId)
-
-
-
-
     }
 
-    /**
-     * Call this when the student swipes "Leave Class"
-     */
     fun stopAttendance() {
-
-        // 2. Reset State
-        _state.update {
-            it.copy(
-                isBroadcasting = false,
-                connectionStatus = ConnectionStatus.IDLE,
-                startTime = 0L
-            )
-        }
-
-        // 3. Clean up
-        timerJob?.cancel()
-        bleBroadcast?.stopAttendance()
+        sessionJob?.cancel()
+        sessionJob = null
+        stopAdvertisingHelper()
     }
 
+    // --- Helpers ---
 
+    private fun startAdvertisingHelper(id: String) {
+        Log.d("StudentController", "Starting Broadcast ,Student ID : $id ")
+        bleBroadcast.startAttendance(id)
 
+        // Fixed: Update local state then push
+        currentStatus = currentStatus.copy(
+            isBroadcasting = true,
+        )
+        updateState()
+    }
+
+    private fun stopAdvertisingHelper() {
+        Log.d("StudentController",  "Session Stopped")
+        bleBroadcast.stopAttendance()
+        // Fixed: Update local state then push
+        currentStatus = currentStatus.copy(
+            isBroadcasting = false
+        )
+        updateState()
+    }
 }

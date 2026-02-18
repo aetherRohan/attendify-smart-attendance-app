@@ -1,8 +1,6 @@
-package com.rohan.attendify_smart_attendance.ui.teacher
-
+package com.rohan.attendify_smart_attendance.ui.student
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -14,9 +12,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun TeacherDashboardScreen(
+fun StudentDashboardScreen(
     name: String,
-    viewModel: TeacherDashboardViewModel,
+    viewModel: StudentDashbaordViewmodel,
     onToggle: (Boolean) -> Unit
 ){
     val state by viewModel.uiState.collectAsState()
@@ -38,60 +36,23 @@ fun TeacherDashboardScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-
         Button(
-            onClick = { onToggle(state.isScanning) },
-            modifier = Modifier.size(160.dp), // Increased size slightly for better touch
+            onClick = { onToggle(state.isBroadcasting) },
+            modifier = Modifier.size(260.dp),
             shape = CircleShape,
             colors = ButtonDefaults.buttonColors(
-                containerColor = if (state.isScanning) Color.Red else Color(0xFF4CAF50)
+                containerColor = if (state.isBroadcasting) Color.Red else Color(0xFF4CAF50)
             )
         ) {
             Text(state.buttonText, fontSize = 18.sp, fontWeight = FontWeight.Bold)
         }
-
         Spacer(modifier = Modifier.height(24.dp))
-
-
         Text(
             text = "Status: ${state.statsMessage}",
             style = MaterialTheme.typography.bodyLarge,
             color = Color.Gray
         )
-        Text(
-            text = "Total Found: ${state.numberOfStudent}",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
-        )
-
         Spacer(modifier = Modifier.height(32.dp))
-
-
-        Text(
-            text = "Students in the Class",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.align(Alignment.Start)
-        )
-
         Spacer(modifier = Modifier.height(8.dp))
-
-
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            contentPadding = PaddingValues(bottom = 16.dp)
-        ) {
-            items(state.studentsList) { studentName ->
-                Text(
-                    text = studentName,
-                    modifier = Modifier.padding(vertical = 12.dp, horizontal = 4.dp),
-                    fontSize = 18.sp
-                )
-                HorizontalDivider()
-            }
-        }
     }
 }

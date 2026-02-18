@@ -2,20 +2,20 @@ package com.rohan.attendify_smart_attendance.domain.session
 
 import android.util.Log
 import com.rohan.attendify_smart_attendance.data.ble.BleScanClient
-import com.rohan.attendify_smart_attendance.repository.AttendanceRepository
+import com.rohan.attendify_smart_attendance.repository.TeacherSessionRepository
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-class TeacherSessionController {
-
-    private var bleClient: BleScanClient? = null
-    private var sessionScope: CoroutineScope? = null
-
+class TeacherSessionController(
+    private val bleClient: BleScanClient,
+    private var sessionScope: CoroutineScope
+) {
     private var currentWindowIndex: Int = 0
-    private var isRunning: Boolean = false
 
+    private var currentStatus= SessionStatus()
 
     private val dataMutex = Mutex()
     private val studentsInCurrentWindow = HashSet<String>()
@@ -23,22 +23,13 @@ class TeacherSessionController {
     private var microCycleCounter = 0
     private var sessionStartTime: Long = 0
 
-    fun initialize(client: BleScanClient,sessionScope: CoroutineScope) {
-        this.bleClient = client
-        this.sessionScope=sessionScope
-    }
 
-    private fun updateState(isRunning: Boolean, count: Int, list: List<String>) {
-        val newStatus = SessionStatus(
-            isRunning = isRunning,
-            studentsFoundCount = count,
-            studentList = list
-        )
-        AttendanceRepository.updateStatus(newStatus)
+    private fun updateState() {
+        TeacherSessionRepository.updateStatus(currentStatus)
     }
 
     fun startSession() {
-        if (isRunning) return
+        if (currentStatus.isRunning) return
 
         Log.i(TAG, "Starting Session: 5-min Windows, One-Hit Threshold")
         sessionStartTime = System.currentTimeMillis()
@@ -47,14 +38,13 @@ class TeacherSessionController {
         microCycleCounter = 0
         studentsInCurrentWindow.clear()
 
-        updateState(
+        currentStatus=currentStatus.copy(
             isRunning = true,
-            count = studentsInCurrentWindow.size,
-           list =  studentsInCurrentWindow.toList()
+            studentsFoundCount = studentsInCurrentWindow.size,
+            studentList=  studentsInCurrentWindow.toList()
         )
-
-
-        sessionScope?.launch {
+        updateState()
+        sessionScope.launch {
             while (isActive) {
                 runOneMicroCycle()
             }
@@ -63,20 +53,18 @@ class TeacherSessionController {
 
 
     fun stopSession(classId: String) {
-        if (isRunning) return
+        if (!currentStatus.isRunning) return
 
         val durationMin = (System.currentTimeMillis() - sessionStartTime) / 60000
         val finalWindowCount = if (currentWindowIndex>1) currentWindowIndex - 1 else currentWindowIndex
 
-        sessionScope?.cancel()
-        sessionScope = null
-        bleClient?.stopScanning()
-
-        updateState(
-            isRunning = false,
-            count = studentsInCurrentWindow.size,
-            list =  studentsInCurrentWindow.sorted()
-        )
+       currentStatus=currentStatus.copy(
+           isRunning = false
+       )
+        updateState()
+        bleClient.stopScanning()
+        sessionScope.cancel()
+//        sessionScope = null
 
         // SEND FINAL SUMMARY
         runBlocking {
@@ -84,27 +72,27 @@ class TeacherSessionController {
         }
     }
 
-
     private suspend fun runOneMicroCycle() {
         // --- PHASE 1: SCAN & COLLECT ---
-        val collectionJob = bleClient?.scanResults?.onEach { studentId ->
+        val collectionJob = bleClient.scanResults.onEach { studentId ->
             dataMutex.withLock {
                 // ONE-HIT LOGIC: If new for this 5-min window, add them.
                 if (studentsInCurrentWindow.add(studentId)) {
-                    updateState(
-                        isRunning = true,
-                        count = studentsInCurrentWindow.size,
-                        list =  studentsInCurrentWindow.sorted()
-                    )
+                   currentStatus=currentStatus.copy(
+                       studentsFoundCount=studentsInCurrentWindow.size,
+                       studentList=studentsInCurrentWindow.sorted()
+                   )
+                    updateState()
+
                     Log.e("DeviceName",studentId)
                 }
             }
-        }?.launchIn(sessionScope!!)
+        }.launchIn(sessionScope)
 
-        bleClient?.startScanning()
+        bleClient.startScanning()
         delay(SCAN_DURATION)
-        bleClient?.stopScanning()
-        collectionJob?.cancel()
+        bleClient.stopScanning()
+        collectionJob.cancel()
 
         // WINDOW MANAGEMENT ---
         microCycleCounter++
