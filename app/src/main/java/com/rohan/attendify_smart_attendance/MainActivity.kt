@@ -36,7 +36,7 @@ class MainActivity : ComponentActivity() {
                             Log.d("Signin", "Role: '${user.role}'")
 
                             val rawRole = user.role
-                            val isTeacher = rawRole.contains("ROLE_TEACHER", ignoreCase = true)
+                            val isTeacher = rawRole.contains("TEACHER", ignoreCase = true)
 
                             val destinationActivity = if (isTeacher) {
                                 TeacherDashboardActivity::class.java

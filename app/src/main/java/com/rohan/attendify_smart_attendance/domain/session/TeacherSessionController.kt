@@ -110,7 +110,7 @@ class TeacherSessionController(
         delay(REST_DURATION)
     }
 
-
+    
     private fun uploadWindowData(index: Int, students: List<String>) {
         CoroutineScope(Dispatchers.IO).launch {
             Log.i(TAG, "UPLOADING WINDOW #$index | Students: ${students.size}")
