@@ -6,7 +6,7 @@ import androidx.room.Entity
     primaryKeys = ["studentId", "classId"] // A student can be in multiple classes
 )
 data class StudentRosterEntity(
-    val studentId: Long,     // ID from your Spring Boot server
+    val studentId: String,
     val classId: String,
     val bleUuid: String,
     val name: String,

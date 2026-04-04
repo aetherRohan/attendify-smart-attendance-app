@@ -2,7 +2,6 @@ package com.rohan.attendify_smart_attendance.service
 
 import android.app.Service
 import android.bluetooth.BluetoothManager
-import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
@@ -47,14 +46,14 @@ class TeacherScanService : Service(){
         startForegroundServicePromotion()
 
         classId?.let {
-            teacherSessionController?.startSession(it)
+            teacherSessionController.startSession(it)
         }
         return START_STICKY
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        teacherSessionController?.stopSession("0000180A-0000-1000-8000-00805F9B34FB")
+        teacherSessionController.stopSession("0000180A-0000-1000-8000-00805F9B34FB")
         serviceScope.cancel()
     }
 

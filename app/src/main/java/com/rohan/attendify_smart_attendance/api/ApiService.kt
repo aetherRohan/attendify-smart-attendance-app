@@ -7,6 +7,7 @@ import com.rohan.attendify_smart_attendance.dto.StudentRosterDto
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.Path
 
@@ -22,6 +23,9 @@ interface ApiService {
     suspend fun registerStudent(@Body request: SignupRequest): Response<LoginResponse>
 
     @GET("/api/teacher/class/{classId}/students")
-    suspend fun getClassRoster(@Path("classId") classId: String): Response<List<StudentRosterDto>>
+    suspend fun getClassRoster(
+        @Header("Authorization") token: String,
+        @Path("classId") classId: String
+    ): Response<List<StudentRosterDto>>
 
 }

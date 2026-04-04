@@ -2,6 +2,7 @@ package com.rohan.attendify_smart_attendance.domain.session
 
 import android.util.Log
 import com.rohan.attendify_smart_attendance.data.ble.BleScanClient
+import com.rohan.attendify_smart_attendance.data.local.entity.StudentRosterEntity
 import com.rohan.attendify_smart_attendance.repository.TeacherSessionRepository
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.launchIn
@@ -14,23 +15,22 @@ class TeacherSessionController(
     private val teacherRepository: TeacherSessionRepository
 ) {
     private var currentWindowIndex: Int = 0
-
     private var currentStatus= SessionStatus()
-
     private val dataMutex = Mutex()
+    private val studentsInClass= HashSet<String>()
     private val studentsInCurrentWindow = HashSet<String>()
-
     private var microCycleCounter = 0
     private var sessionStartTime: Long = 0
 
 
     private fun updateState() {
-        teacherRepository?.updateStatus(currentStatus)
+        teacherRepository.updateStatus(currentStatus)
     }
 
     // 1.for now fetch the students from server and store them locally
     // 2.create temp db of class session  ,need current date
     // 3.and inc window hit count for every 5 min window
+
     // 4. after stoping the session impl the coroutine worker for data sync with server
 
     fun startSession(classId: String) {
@@ -49,10 +49,19 @@ class TeacherSessionController(
             studentList=  studentsInCurrentWindow.toList()
         )
         updateState()
-        sessionScope.launch {
 
-        }
+        //fetching the student from server and storing ble uuid in a hashset
+
         sessionScope.launch {
+            teacherRepository.fetchAndSaveRoster(classId)
+            Log.e("session","saved the student from db locally")
+            val studentList = teacherRepository.getStudentsForClass(classId)
+            Log.i("size"," the size of the list is :${studentList.size}")
+
+            studentList.forEach { student ->
+                studentsInClass.add(student.bleUuid)
+            }
+            Log.e("session","saved the ble ids in hashSet")
             while (isActive) {
                 runOneMicroCycle()
             }
