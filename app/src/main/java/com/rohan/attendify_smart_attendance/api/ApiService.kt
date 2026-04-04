@@ -3,9 +3,12 @@ package com.rohan.attendify_smart_attendance.api
 import com.rohan.attendify_smart_attendance.dto.LoginRequest
 import com.rohan.attendify_smart_attendance.dto.LoginResponse
 import com.rohan.attendify_smart_attendance.dto.SignupRequest
+import com.rohan.attendify_smart_attendance.dto.StudentRosterDto
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Path
 
 interface ApiService {
 
@@ -17,5 +20,8 @@ interface ApiService {
 
     @POST("api/auth/signup/student")
     suspend fun registerStudent(@Body request: SignupRequest): Response<LoginResponse>
+
+    @GET("/api/teacher/class/{classId}/students")
+    suspend fun getClassRoster(@Path("classId") classId: String): Response<List<StudentRosterDto>>
 
 }

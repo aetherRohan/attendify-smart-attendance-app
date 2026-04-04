@@ -7,8 +7,10 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
+import com.rohan.attendify_smart_attendance.AttendifyApplication
 import com.rohan.attendify_smart_attendance.data.ble.BleScanClient
 import com.rohan.attendify_smart_attendance.domain.session.TeacherSessionController
+import com.rohan.attendify_smart_attendance.repository.TeacherSessionRepository
 import com.rohan.attendify_smart_attendance.utils.NotificationHelper // <--- Import this
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -19,18 +21,31 @@ class TeacherScanService : Service(){
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private var teacherSessionController : TeacherSessionController?=null
 
+
+    private var teacherRepository: TeacherSessionRepository?=null
+
+    private var classId : String?=null
+
     override fun onCreate() {
         super.onCreate()
         val bluetoothManager = getSystemService(BLUETOOTH_SERVICE) as BluetoothManager
         val bleClient = BleScanClient(bluetoothManager.adapter, serviceScope)
-        teacherSessionController= TeacherSessionController(bleClient = bleClient, sessionScope = serviceScope)
+        val app =application as AttendifyApplication
+        teacherRepository=app.teacherRepository
+        teacherSessionController= TeacherSessionController(bleClient = bleClient,
+                                                           sessionScope = serviceScope,
+                                                           teacherRepository = teacherRepository)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+
+        classId=intent?.getStringExtra("CLASS_ID")
         // --- CLEANER: Delegate to Helper ---
         startForegroundServicePromotion()
 
-        teacherSessionController?.startSession()
+        classId?.let {
+            teacherSessionController?.startSession(it)
+        }
         return START_STICKY
     }
 
