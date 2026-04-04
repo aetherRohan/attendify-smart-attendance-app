@@ -11,7 +11,7 @@ import kotlinx.coroutines.sync.withLock
 class TeacherSessionController(
     private val bleClient: BleScanClient,
     private var sessionScope: CoroutineScope,
-    private val teacherRepository: TeacherSessionRepository?
+    private val teacherRepository: TeacherSessionRepository
 ) {
     private var currentWindowIndex: Int = 0
 

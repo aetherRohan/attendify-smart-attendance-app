@@ -22,19 +22,22 @@ class TeacherScanService : Service(){
     private var teacherSessionController : TeacherSessionController?=null
 
 
-    private var teacherRepository: TeacherSessionRepository?=null
+    private lateinit var teacherRepository: TeacherSessionRepository
 
-    private var classId : String?=null
+    private var classId: String? = null
 
     override fun onCreate() {
         super.onCreate()
         val bluetoothManager = getSystemService(BLUETOOTH_SERVICE) as BluetoothManager
         val bleClient = BleScanClient(bluetoothManager.adapter, serviceScope)
-        val app =application as AttendifyApplication
-        teacherRepository=app.teacherRepository
-        teacherSessionController= TeacherSessionController(bleClient = bleClient,
-                                                           sessionScope = serviceScope,
-                                                           teacherRepository = teacherRepository)
+        val app = application as AttendifyApplication
+        teacherRepository = app.teacherRepository
+
+        teacherSessionController = TeacherSessionController(
+            bleClient = bleClient,
+            sessionScope = serviceScope,
+            teacherRepository = teacherRepository
+        )
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
