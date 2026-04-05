@@ -1,13 +1,15 @@
 package com.rohan.attendify_smart_attendance.ui.auth
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
-import com.rohan.attendify_smart_attendance.api.RetrofitInstance
 import com.rohan.attendify_smart_attendance.dto.ErrorResponse
 import com.rohan.attendify_smart_attendance.dto.LoginResponse
 import com.rohan.attendify_smart_attendance.entity.UserRole
 import com.rohan.attendify_smart_attendance.repository.AuthRepository
+import com.rohan.attendify_smart_attendance.repository.TeacherSessionRepository
+import com.rohan.attendify_smart_attendance.ui.teacher.TeacherDashboardViewModel
 import com.rohan.attendify_smart_attendance.utils.Resource
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,9 +17,10 @@ import kotlinx.coroutines.launch
 import retrofit2.Response
 import java.io.IOException
 
-class AuthViewModel : ViewModel() {
+class AuthViewModel(
+    private val repository: AuthRepository
+) : ViewModel() {
 
-    private val repository = AuthRepository(RetrofitInstance)
 
     private val _authState = MutableStateFlow<Resource<LoginResponse>?>(null)
     val authState: StateFlow<Resource<LoginResponse>?> = _authState
@@ -96,5 +99,16 @@ class AuthViewModel : ViewModel() {
             is IOException -> _authState.value = Resource.Error("Network Error: Check Internet")
             else -> _authState.value = Resource.Error("Error: ${e.localizedMessage}")
         }
+    }
+}
+class AuthViewModelFactory(
+    private val repository: AuthRepository
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(AuthViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return AuthViewModel(repository) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

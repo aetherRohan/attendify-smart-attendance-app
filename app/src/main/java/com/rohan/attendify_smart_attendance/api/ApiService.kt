@@ -24,7 +24,6 @@ interface ApiService {
 
     @GET("/api/teacher/class/{classId}/students")
     suspend fun getClassRoster(
-        @Header("Authorization") token: String,
         @Path("classId") classId: String
     ): Response<List<StudentRosterDto>>
 

@@ -83,4 +83,10 @@ dependencies {
     implementation("androidx.room:room-runtime:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")      // Coroutine support
     ksp("androidx.room:room-compiler:$roomVersion")            // Annotation processor (required!)
+
+    // Jetpack DataStore ( async storage system)
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    // Google Tink ( cryptography)
+    implementation("com.google.crypto.tink:tink-android:1.8.0")
+
 }

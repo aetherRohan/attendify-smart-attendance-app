@@ -28,7 +28,7 @@ class TeacherSessionRepository(
     suspend fun fetchAndSaveRoster(classId: String) {
         try {
             // 1. Fetch from Spring Boot
-            val response = api.getClassRoster(classId,"")
+            val response = api.getClassRoster(classId)
 
             if (response.isSuccessful && response.body() != null) {
                 // 2. Convert DTOs to Room Entities

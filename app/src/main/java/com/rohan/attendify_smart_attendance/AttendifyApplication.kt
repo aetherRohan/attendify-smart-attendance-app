@@ -3,23 +3,28 @@ package com.rohan.attendify_smart_attendance
 import android.app.Application
 import com.rohan.attendify_smart_attendance.api.RetrofitInstance
 import com.rohan.attendify_smart_attendance.data.local.AttendifyDatabase
+import com.rohan.attendify_smart_attendance.repository.AuthRepository
 import com.rohan.attendify_smart_attendance.repository.TeacherSessionRepository
+import com.rohan.attendify_smart_attendance.security.TokenManager
 
 class AttendifyApplication : Application() {
 
-    // 'by lazy' means: "Don't build this until someone actually asks for it,
-    // but once you build it, keep the same one forever."
-
+    val tokenManager by lazy { TokenManager(this) }
     val database by lazy { AttendifyDatabase.getDatabase(this) }
+    val api by lazy { RetrofitInstance.getApi(tokenManager) }
 
-    val api by lazy { RetrofitInstance.api }
 
-    // Here is your SINGLE source of truth!
     val teacherRepository by lazy {
         TeacherSessionRepository(
             api = api,
             rosterDao = database.studentRosterDao(),
             pendingSessionDao = database.pendingSessionDao()
+        )
+    }
+
+    val authRepository by lazy {
+        AuthRepository(
+            api,tokenManager
         )
     }
 }

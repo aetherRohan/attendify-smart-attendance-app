@@ -19,11 +19,9 @@ import kotlinx.coroutines.cancel
 class TeacherScanService : Service(){
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private lateinit var teacherSessionController : TeacherSessionController
-
-
     private lateinit var teacherRepository: TeacherSessionRepository
-
     private var classId: String? = null
+
 
     override fun onCreate() {
         super.onCreate()

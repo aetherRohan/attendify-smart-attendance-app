@@ -11,11 +11,16 @@ import com.rohan.attendify_smart_attendance.dto.LoginResponse
 import com.rohan.attendify_smart_attendance.ui.auth.LoginRoute
 import com.rohan.attendify_smart_attendance.ui.theme.AttendifySmartAttendanceTheme
 import com.rohan.attendify_smart_attendance.ui.auth.AuthViewModel
+import com.rohan.attendify_smart_attendance.ui.auth.AuthViewModelFactory
 import com.rohan.attendify_smart_attendance.ui.student.StudentDashboardActivity
 import com.rohan.attendify_smart_attendance.ui.teacher.TeacherDashboardActivity
+import com.rohan.attendify_smart_attendance.ui.teacher.TeacherViewModelFactory
 
 class MainActivity : ComponentActivity() {
-    private val authViewModel: AuthViewModel by viewModels()
+    private val authViewModel: AuthViewModel by viewModels{
+        val app = application as AttendifyApplication
+        AuthViewModelFactory(app.authRepository)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
