@@ -31,9 +31,9 @@ class TeacherSessionController(
         teacherRepository.updateStatus(currentStatus)
     }
 
-    // 1.for now fetch the students from server and store them locally  x x
-    // 2.create temp db of class session  ,need current date
-    // 3.and inc window hit count for every 5 min window
+    // 1.for now fetch the students from server and store them locally  x/ x
+    // 2.create temp db of class session  ,need current date xx/xx
+    // 3.and inc window hit count for every 5 min window  xx/xx
     // 4. after stoping the session impl the coroutine worker for data sync with server
 
     fun startSession(id: String) {
@@ -54,18 +54,20 @@ class TeacherSessionController(
         )
         updateState()
 
-        //fetching the student from server and storing ble uuid in a hashset
-
+        //fetch the student from server and store ble uuid in a hashset
         sessionScope.launch {
+
+            //for demo it fetches the student roster everytime the session starts
             teacherRepository.fetchAndSaveRoster(classId)
-            Log.e("session","saved the student from db locally")
+            Log.i("session","saved the student from db locally")
+
             val studentList = teacherRepository.getStudentsForClass(classId)
             Log.i("size"," the size of the list is :${studentList.size}")
 
             studentList.forEach { student ->
                 studentsInClass.put(student.bleUuid,student.name)
             }
-            Log.e("session","saved the ble ids in hashSet")
+            Log.i("session","saved the ble ids in hashSet")
             while (isActive) {
                 runOneMicroCycle()
             }
@@ -93,9 +95,6 @@ class TeacherSessionController(
             addToPendingSession(classId, durationMin, currentWindowIndex)
         }
     }
-
-    // 5.Get the students from the db and store them in Hash set
-    // 6.Only add the students in currentWindowStudentList if they are present in that list
 
     private suspend fun runOneMicroCycle() {
         // --- PHASE 1: SCAN & COLLECT ---
@@ -132,7 +131,7 @@ class TeacherSessionController(
 
         if (microCycleCounter >= CYCLES_PER_WINDOW) {
             // 5 Minutes reached ,send window report
-            syncWindowData(currentWindowIndex, studentsNamesInCurrentWindow.sorted())
+            syncWindowData(currentWindowIndex, studentsIdsInCurrentWindow.sorted())
 
             // Reset for next 5-min block
             microCycleCounter = 0
@@ -149,22 +148,21 @@ class TeacherSessionController(
 
     //  call the local db and inc the window hit
     private fun syncWindowData(index: Int, students: List<String>) {
-        // 1. Always use a lifecycle-aware scope (like sessionScope or viewModelScope)
+
         sessionScope.launch {
             Log.i(TAG, "Syncing WINDOW #$index to local database | Students found: ${students.size}")
 
             try {
-
                 teacherRepository.recordCurrentWindowAttendance(
                     classId = classId,
                     windowIndex = index,
                     scannedStudents = students
                 )
 
-                Log.i(TAG, "Window #$index successfully secured in offline vault.")
+                Log.i(TAG, "Window #$index successfully saved to db")
 
             } catch (e: Exception) {
-                // 3. Failsafe logging in case the Room database is locked or throws an error
+
                 Log.e(TAG, "CRITICAL: Failed to sync window #$index data: ${e.message}", e)
             }
         }
@@ -186,7 +184,9 @@ class TeacherSessionController(
         // Time constants are clearer when grouped here
         private const val SCAN_DURATION = 30_000L
         private const val REST_DURATION = 30_000L
-        private const val CYCLES_PER_WINDOW = 5
+
+        ///for testing set it to 1
+        private const val CYCLES_PER_WINDOW = 1
     }
 
     data class SessionStatus(

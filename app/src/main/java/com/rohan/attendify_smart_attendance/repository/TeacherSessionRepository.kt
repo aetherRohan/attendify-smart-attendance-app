@@ -43,9 +43,9 @@ class TeacherSessionRepository(
 
                 // 3. Save to your local offline vault
                 rosterDao.insertRoster(roomEntities)
-                Log.i("session", "~~~~data saved to local database ~~~~")
+                Log.i("session","StudentRoster fetched from server and saved to db")
             } else {
-                Log.e("session", "${response.errorBody()} error code:${response.code()}")
+                Log.e("session", "Could not fetch the studentRoster error code:${response.code()}")
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -58,12 +58,11 @@ class TeacherSessionRepository(
         return try {
             rosterDao.getStudentsForClass(classId)
         } catch (e: Exception) {
-            // THIS IS CRITICAL: It prints the exact reason it failed in red text!
+
             Log.e("session", "CRASH IN DB READ: ${e.message}", e)
             emptyList()
         }
     }
-
 
 
     suspend fun recordCurrentWindowAttendance(
@@ -71,8 +70,6 @@ class TeacherSessionRepository(
         windowIndex: Int,
         scannedStudents: List<String>
     ) {
-        // withContext blocks the caller until the DB write is finished,
-        // ensuring thread safety without leaking memory.
         withContext(Dispatchers.IO) {
             try {
                 // 2. Date is safely generated here, so we don't need it in the parameters!
@@ -108,10 +105,12 @@ class TeacherSessionRepository(
                     }
 
                     val updatedSession = existingSession.copy(
-                        studentHitsMap = updatedHits
+                        studentHitsMap = updatedHits,
+                        totalWindows = windowIndex
                     )
 
                     pendingSessionDao.updateSession(updatedSession)
+
                     Log.i(
                         TAG,
                         "Updated session for $todayDate. Total windows now: ${updatedSession.totalWindows}"
