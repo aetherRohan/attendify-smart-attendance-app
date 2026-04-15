@@ -2,7 +2,7 @@ package com.rohan.attendify_smart_attendance.security
 
 import android.content.Context
 import android.util.Base64
-import android.util.Log // Added for professional error logging
+import android.util.Log
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -13,7 +13,7 @@ import com.google.crypto.tink.integration.android.AndroidKeysetManager
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 
-// 1. Create the DataStore at the top level so it acts as a Singleton
+
 private val Context.dataStore by preferencesDataStore(name = "secure_session_store")
 
 class TokenManager(private val context: Context) {
@@ -22,7 +22,7 @@ class TokenManager(private val context: Context) {
         private val ACCESS_TOKEN_KEY = stringPreferencesKey("jwt_access_token")
         private val REFRESH_TOKEN_KEY = stringPreferencesKey("refresh_token")
         private const val MASTER_KEY_URI = "android-keystore://attendify_master_key"
-        private const val TAG = "TokenManager" // Standard tag for filtering Logcat
+        private const val TAG = "TokenManager"
     }
 
     private val aead: Aead

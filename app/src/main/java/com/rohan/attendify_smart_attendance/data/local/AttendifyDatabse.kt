@@ -13,7 +13,7 @@ import com.rohan.attendify_smart_attendance.data.local.entity.StudentRosterEntit
 
 @Database(
     entities = [StudentRosterEntity::class, PendingSessionEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(MapTypeConverter::class)

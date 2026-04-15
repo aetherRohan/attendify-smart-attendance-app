@@ -1,14 +1,19 @@
 package com.rohan.attendify_smart_attendance.repository
 
 import android.util.Log
-import androidx.sqlite.throwSQLiteException
 import com.rohan.attendify_smart_attendance.api.ApiService
 import com.rohan.attendify_smart_attendance.data.local.dao.PendingSessionDao
 import com.rohan.attendify_smart_attendance.data.local.dao.StudentRosterDao
+import com.rohan.attendify_smart_attendance.data.local.entity.PendingSessionEntity
 import com.rohan.attendify_smart_attendance.data.local.entity.StudentRosterEntity
 import com.rohan.attendify_smart_attendance.domain.session.TeacherSessionController
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.withContext
+import java.util.Date
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class TeacherSessionRepository(
     private val api: ApiService,
@@ -17,6 +22,8 @@ class TeacherSessionRepository(
 ) {
     private val _sessionStatus = MutableStateFlow(TeacherSessionController.SessionStatus())
     val sessionStatus = _sessionStatus.asStateFlow()
+
+    val TAG="pendingSession"
 
 
     //
@@ -36,13 +43,13 @@ class TeacherSessionRepository(
 
                 // 3. Save to your local offline vault
                 rosterDao.insertRoster(roomEntities)
-                Log.i("session","~~~~data saved to local database ~~~~")
-            }else{
-                Log.e("session","${response.errorBody()} error code:${response.code()}")
+                Log.i("session", "~~~~data saved to local database ~~~~")
+            } else {
+                Log.e("session", "${response.errorBody()} error code:${response.code()}")
             }
         } catch (e: Exception) {
-           e.printStackTrace()
-            Log.e("session","${e.message}")
+            e.printStackTrace()
+            Log.e("session", "${e.message}")
         }
     }
 
@@ -59,5 +66,62 @@ class TeacherSessionRepository(
 
 
 
+    suspend fun recordCurrentWindowAttendance(
+        classId: String,
+        windowIndex: Int,
+        scannedStudents: List<String>
+    ) {
+        // withContext blocks the caller until the DB write is finished,
+        // ensuring thread safety without leaking memory.
+        withContext(Dispatchers.IO) {
+            try {
+                // 2. Date is safely generated here, so we don't need it in the parameters!
+                val todayDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
 
-}
+                // Query local Room DB
+                val existingSession = pendingSessionDao.getSessionForToday(classId, todayDate)
+
+                if (existingSession == null) {
+                    // SCENARIO 1: First scan of the day. Initialize map with 1 hit per student.
+                    val initialHits = scannedStudents.associateWith { 1 }
+
+                    val newSession = PendingSessionEntity(
+                        classId = classId,
+                        sessionStartDate = todayDate,
+                        totalWindows = windowIndex,
+                        studentHitsMap = initialHits
+                    )
+
+                    pendingSessionDao.insertPendingSession(newSession)
+                    Log.i(
+                        TAG,
+                        "Created new session for $todayDate. Initialized ${scannedStudents.size} students."
+                    )
+
+                } else {
+                    // SCENARIO 2: Session exists. Safely increment the hit counts.
+                    val updatedHits = existingSession.studentHitsMap.toMutableMap()
+
+                    for (studentId in scannedStudents) {
+                        val currentHits = updatedHits[studentId] ?: 0
+                        updatedHits[studentId] = currentHits + 1
+                    }
+
+                    val updatedSession = existingSession.copy(
+                        studentHitsMap = updatedHits
+                    )
+
+                    pendingSessionDao.updateSession(updatedSession)
+                    Log.i(
+                        TAG,
+                        "Updated session for $todayDate. Total windows now: ${updatedSession.totalWindows}"
+                    )
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to record window attendance safely: ${e.message}", e)
+            }
+        }
+    }
+
+ }
+

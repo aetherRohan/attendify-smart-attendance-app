@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import com.rohan.attendify_smart_attendance.data.local.entity.PendingSessionEntity
 
 @Dao
@@ -18,4 +19,10 @@ interface PendingSessionDao {
     // Call this ONLY after Retrofit gets a successful 200 OK from Spring Boot
     @Query("DELETE FROM pending_sessions WHERE localSessionId = :id")
     suspend fun deleteSessionById(id: Long)
+
+    @Query("SELECT * FROM pending_sessions WHERE classId = :classId AND sessionStartDate = :date LIMIT 1")
+    suspend fun getSessionForToday(classId: String, date: String): PendingSessionEntity?
+
+    @Update
+    suspend fun updateSession(session: PendingSessionEntity)
 }
