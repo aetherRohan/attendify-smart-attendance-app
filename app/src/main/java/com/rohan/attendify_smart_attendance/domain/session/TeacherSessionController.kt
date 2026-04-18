@@ -185,8 +185,8 @@ class TeacherSessionController(
         private const val SCAN_DURATION = 30_000L
         private const val REST_DURATION = 30_000L
 
-        ///for testing set it to 1
-        private const val CYCLES_PER_WINDOW = 1
+
+        private const val CYCLES_PER_WINDOW = 5
     }
 
     data class SessionStatus(

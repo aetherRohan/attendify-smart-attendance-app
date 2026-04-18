@@ -30,10 +30,10 @@ class MainActivity : ComponentActivity() {
                 LoginRoute(
                     viewModel = authViewModel,
                     onNavigateToHome = { data ->
-                        // 1. DEBUG LOGGING: See exactly what is coming back
+
                         Log.d("Signin", "Raw Data Received: $data")
 
-                        // 2. Safe Casting
+
                         val user = data as? LoginResponse
 
                         if (user != null) {
