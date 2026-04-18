@@ -1,7 +1,9 @@
 package com.rohan.attendify_smart_attendance.api
 
+import com.rohan.attendify_smart_attendance.data.local.entity.PendingSessionEntity
 import com.rohan.attendify_smart_attendance.dto.LoginRequest
 import com.rohan.attendify_smart_attendance.dto.LoginResponse
+import com.rohan.attendify_smart_attendance.dto.SessionSyncRequest
 import com.rohan.attendify_smart_attendance.dto.SignupRequest
 import com.rohan.attendify_smart_attendance.dto.StudentRosterDto
 import retrofit2.Response
@@ -26,5 +28,11 @@ interface ApiService {
     suspend fun getClassRoster(
         @Path("classId") classId: String
     ): Response<List<StudentRosterDto>>
+
+
+    @POST("/api/teacher/session/sync")
+    suspend fun uploadOfflineSessions(
+        @Body syncRequest: List<SessionSyncRequest>
+    ): Response<Unit>
 
 }

@@ -1,23 +1,32 @@
 package com.rohan.attendify_smart_attendance.domain.session
 
+import android.content.Context
 import android.util.Log
+import androidx.work.Constraints
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.rohan.attendify_smart_attendance.data.ble.BleScanClient
 import com.rohan.attendify_smart_attendance.repository.TeacherSessionRepository
+import com.rohan.attendify_smart_attendance.worker.SyncSessionWorker
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+
 class TeacherSessionController(
+    val context: Context,
     private val bleClient: BleScanClient,
     private var sessionScope: CoroutineScope,
     private val teacherRepository: TeacherSessionRepository
 ) {
     private lateinit var classId: String
     private var currentWindowIndex: Int = 1
-    private var currentStatus= SessionStatus()
+    private var currentStatus = SessionStatus()
     private val dataMutex = Mutex()
-    private val studentsInClass= mutableMapOf<String, String>()
+    private val studentsInClass = mutableMapOf<String, String>()
     private val studentIdNameInCurrentWindow = mutableMapOf<String, String>()
     private val studentsNamesInCurrentWindow = HashSet<String>()
     private val studentsIdsInCurrentWindow = HashSet<String>()
@@ -31,13 +40,8 @@ class TeacherSessionController(
         teacherRepository.updateStatus(currentStatus)
     }
 
-    // 1.for now fetch the students from server and store them locally  x/ x
-    // 2.create temp db of class session  ,need current date xx/xx
-    // 3.and inc window hit count for every 5 min window  xx/xx
-    // 4. after stoping the session impl the coroutine worker for data sync with server
-
     fun startSession(id: String) {
-        classId=id
+        classId = "1"
         if (currentStatus.isRunning || classId.isBlank()) return
 
         Log.i(TAG, "Starting Session: 5-min Windows, One-Hit Threshold")
@@ -47,27 +51,25 @@ class TeacherSessionController(
         microCycleCounter = 0
         studentsNamesInCurrentWindow.clear()
 
-        currentStatus=currentStatus.copy(
+        currentStatus = currentStatus.copy(
             isRunning = true,
             studentsFoundCount = studentsNamesInCurrentWindow.size,
-            studentList=  studentsNamesInCurrentWindow.toList()
+            studentList = studentsNamesInCurrentWindow.toList()
         )
         updateState()
 
-        //fetch the student from server and store ble uuid in a hashset
+        //fetch the student from server and store ble uuids in a hashset
         sessionScope.launch {
 
             //for demo it fetches the student roster everytime the session starts
             teacherRepository.fetchAndSaveRoster(classId)
-            Log.i("session","saved the student from db locally")
 
             val studentList = teacherRepository.getStudentsForClass(classId)
-            Log.i("size"," the size of the list is :${studentList.size}")
 
             studentList.forEach { student ->
-                studentsInClass.put(student.bleUuid,student.name)
+                studentsInClass.put(student.bleUuid, student.name)
             }
-            Log.i("session","saved the ble ids in hashSet")
+
             while (isActive) {
                 runOneMicroCycle()
             }
@@ -75,26 +77,36 @@ class TeacherSessionController(
     }
 
 
-    fun stopSession(classId: String) {
+    fun stopSession() {
         if (!currentStatus.isRunning) return
-
         val durationMin = (System.currentTimeMillis() - sessionStartTime) / 60000
 
-
-       currentStatus=currentStatus.copy(
-           isRunning = false
-       )
+        currentStatus = currentStatus.copy(
+            isRunning = false
+        )
         updateState()
         bleClient.stopScanning()
+
+        val finalIndex = currentWindowIndex
+        val finalStudents = studentsIdsInCurrentWindow.sorted()
+        val currentClassId = classId
+
         sessionScope.cancel()
-//        sessionScope = null
 
-        // Add to Coroutine for syncing with server when internet is available
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                addToPendingSession(
+                    index = finalIndex, students = finalStudents, classId = currentClassId
+                )
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Log.e("worker", "${e.message}")
+            }
 
-        runBlocking {
-            addToPendingSession(classId, durationMin, currentWindowIndex)
         }
+
     }
+
 
     private suspend fun runOneMicroCycle() {
         // --- PHASE 1: SCAN & COLLECT ---
@@ -131,7 +143,7 @@ class TeacherSessionController(
 
         if (microCycleCounter >= CYCLES_PER_WINDOW) {
             // 5 Minutes reached ,send window report
-            syncWindowData(currentWindowIndex, studentsIdsInCurrentWindow.sorted())
+            syncWindowData(currentWindowIndex, studentsIdsInCurrentWindow.sorted(),classId)
 
             // Reset for next 5-min block
             microCycleCounter = 0
@@ -142,21 +154,22 @@ class TeacherSessionController(
             }
             currentWindowIndex = currentWindowIndex + 1
         }
-        //REST ---
+        //REST
         delay(REST_DURATION)
     }
 
     //  call the local db and inc the window hit
-    private fun syncWindowData(index: Int, students: List<String>) {
+    private fun syncWindowData(index: Int, students: List<String>,currentClassId: String) {
 
         sessionScope.launch {
-            Log.i(TAG, "Syncing WINDOW #$index to local database | Students found: ${students.size}")
+            Log.i(
+                TAG,
+                "Syncing WINDOW #$index to local database | Students found: ${students.size}"
+            )
 
             try {
                 teacherRepository.recordCurrentWindowAttendance(
-                    classId = classId,
-                    windowIndex = index,
-                    scannedStudents = students
+                    classId = currentClassId, windowIndex = index, scannedStudents = students
                 )
 
                 Log.i(TAG, "Window #$index successfully saved to db")
@@ -168,27 +181,36 @@ class TeacherSessionController(
         }
     }
 
-    // call the local db for the last time and inc window hit count
-    // stop the session and add to coroutine work Manager for data sync when internet available
-    private  fun addToPendingSession(id: String, duration: Long, windows: Int) {
-        Log.i(TAG, "UPLOADING SUMMARY | Duration: $duration min | Windows: $windows")
+    private fun addToPendingSession(index: Int, students: List<String>,classId: String) {
 
-        // api.post("/attendance/end", { classId: id, totalDuration: duration, totalWindows: windows })
-        // demo
-        Thread.sleep(1000)
+        syncWindowData(index = index, students = students,classId)
+        Log.i(TAG, "FINAL SYNC WITH DB DONE before adding to coroutine worker")
+
+
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        val syncWorkRequest = OneTimeWorkRequestBuilder<SyncSessionWorker>()
+            .setConstraints(constraints)
+            .build()
+
+
+        WorkManager.getInstance(context).enqueueUniqueWork(
+            "Offline_Attendance_Sync",
+            ExistingWorkPolicy.APPEND_OR_REPLACE,
+            syncWorkRequest
+        )
+        Log.i("worker","added to pending session offline sync")
     }
 
 
     companion object {
         private const val TAG = "SessionController"
-        // Time constants are clearer when grouped here
         private const val SCAN_DURATION = 30_000L
         private const val REST_DURATION = 30_000L
-
-
-        private const val CYCLES_PER_WINDOW = 5
+        private const val CYCLES_PER_WINDOW = 1
     }
-
     data class SessionStatus(
         val isRunning: Boolean = false,
         val studentsFoundCount: Int = 0,

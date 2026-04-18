@@ -89,4 +89,9 @@ dependencies {
     // Google Tink ( cryptography)
     implementation("com.google.crypto.tink:tink-android:1.8.0")
 
+    val work_version = "2.11.2"
+    
+    implementation("androidx.work:work-runtime-ktx:$work_version")
+
+
 }

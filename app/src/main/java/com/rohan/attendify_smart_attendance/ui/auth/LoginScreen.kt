@@ -27,14 +27,12 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.rohan.attendify_smart_attendance.entity.UserRole
+import com.rohan.attendify_smart_attendance.enums.UserRole
 import com.rohan.attendify_smart_attendance.ui.components.AnimatedTagline
 import com.rohan.attendify_smart_attendance.ui.components.AttendifyLogo
 import com.rohan.attendify_smart_attendance.ui.theme.AttendifyBlue
 import com.rohan.attendify_smart_attendance.ui.theme.AttendifyGreen
 import com.rohan.attendify_smart_attendance.utils.Resource
-import com.rohan.attendify_smart_attendance.ui.auth.AuthViewModel
-
 
 
 //Logic Layer

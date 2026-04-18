@@ -31,6 +31,7 @@ class TeacherScanService : Service(){
         teacherRepository = app.teacherRepository
 
         teacherSessionController = TeacherSessionController(
+            context = applicationContext,
             bleClient = bleClient,
             sessionScope = serviceScope,
             teacherRepository = teacherRepository
@@ -51,7 +52,7 @@ class TeacherScanService : Service(){
 
     override fun onDestroy() {
         super.onDestroy()
-        teacherSessionController.stopSession("0000180A-0000-1000-8000-00805F9B34FB")
+        teacherSessionController.stopSession()
         serviceScope.cancel()
     }
 

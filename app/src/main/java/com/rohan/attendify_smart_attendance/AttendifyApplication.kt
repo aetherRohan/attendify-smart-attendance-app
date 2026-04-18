@@ -6,6 +6,7 @@ import com.rohan.attendify_smart_attendance.data.local.AttendifyDatabase
 import com.rohan.attendify_smart_attendance.repository.AuthRepository
 import com.rohan.attendify_smart_attendance.repository.TeacherSessionRepository
 import com.rohan.attendify_smart_attendance.security.TokenManager
+import com.rohan.attendify_smart_attendance.worker.SyncSessionWorker
 
 class AttendifyApplication : Application() {
 
@@ -27,4 +28,6 @@ class AttendifyApplication : Application() {
             api,tokenManager
         )
     }
+
+
 }

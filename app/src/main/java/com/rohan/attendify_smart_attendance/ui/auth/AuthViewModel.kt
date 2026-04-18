@@ -6,10 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import com.rohan.attendify_smart_attendance.dto.ErrorResponse
 import com.rohan.attendify_smart_attendance.dto.LoginResponse
-import com.rohan.attendify_smart_attendance.entity.UserRole
+import com.rohan.attendify_smart_attendance.enums.UserRole
 import com.rohan.attendify_smart_attendance.repository.AuthRepository
-import com.rohan.attendify_smart_attendance.repository.TeacherSessionRepository
-import com.rohan.attendify_smart_attendance.ui.teacher.TeacherDashboardViewModel
 import com.rohan.attendify_smart_attendance.utils.Resource
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
