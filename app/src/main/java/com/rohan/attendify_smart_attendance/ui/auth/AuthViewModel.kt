@@ -8,20 +8,30 @@ import com.rohan.attendify_smart_attendance.dto.ErrorResponse
 import com.rohan.attendify_smart_attendance.dto.LoginResponse
 import com.rohan.attendify_smart_attendance.enums.UserRole
 import com.rohan.attendify_smart_attendance.repository.AuthRepository
+import com.rohan.attendify_smart_attendance.security.TokenManager
 import com.rohan.attendify_smart_attendance.utils.Resource
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import retrofit2.Response
 import java.io.IOException
 
 class AuthViewModel(
-    private val repository: AuthRepository
+    private val repository: AuthRepository,
+    private val tokenManager: TokenManager
 ) : ViewModel() {
 
 
     private val _authState = MutableStateFlow<Resource<LoginResponse>?>(null)
     val authState: StateFlow<Resource<LoginResponse>?> = _authState
+
+    private val _sessionState = MutableStateFlow<SessionState>(SessionState.Loading)
+    val sessionState: StateFlow<SessionState> = _sessionState.asStateFlow()
+
+    init {
+        checkSession()
+    }
 
     // LOGIN FUNCTION (With Validation)
     fun loginUser(email: String, pass: String) {
@@ -67,7 +77,13 @@ class AuthViewModel(
                 } else {
                     repository.signupTeacher(name, email, pass)
                 }
-                handleResponse(response)
+
+                if (handleResponse(response)) {
+                    response.body()?.let {
+                        tokenManager.saveAccessToken(it.accessToken)
+                        tokenManager.saveUserDetails(it.name?:"User",it.role,it.userId)
+                    }
+                }
             } catch (e: Exception) {
                 handleException(e)
             }
@@ -75,9 +91,29 @@ class AuthViewModel(
     }
 
 
-    private fun handleResponse(response: Response<LoginResponse>) {
+
+    private fun checkSession() {
+        viewModelScope.launch {
+            val token = tokenManager.getAccessTokenSync()
+            val role = tokenManager.getUserRole()
+
+            if (token != null && role != null) {
+                val name = tokenManager.getUserName() ?: "User"
+                val userId = tokenManager.getUserId() ?: ""
+                _sessionState.value = SessionState.Authenticated(name, role, userId)
+            } else {
+
+                _sessionState.value = SessionState.Unauthenticated
+            }
+        }
+    }
+
+
+
+    private fun handleResponse(response: Response<LoginResponse>): Boolean {
         if (response.isSuccessful && response.body() != null) {
             _authState.value = Resource.Success(response.body()!!)
+            return true
         } else {
             val cleanErrorMessage = try {
 
@@ -89,9 +125,9 @@ class AuthViewModel(
                 "Error: ${response.message()}"
             }
             _authState.value = Resource.Error(cleanErrorMessage)
+            return false
         }
     }
-
     private fun handleException(e: Exception) {
         when (e) {
             is IOException -> _authState.value = Resource.Error("Network Error: Check Internet")
@@ -99,13 +135,24 @@ class AuthViewModel(
         }
     }
 }
+
+
+sealed class SessionState {
+    object Loading : SessionState()
+    data class Authenticated(val name: String, val role: String, val userId: String) : SessionState()
+    object Unauthenticated : SessionState()
+}
+
 class AuthViewModelFactory(
-    private val repository: AuthRepository
+    private val repository: AuthRepository,
+    private val tokenManager: TokenManager
 ) : ViewModelProvider.Factory {
+
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(AuthViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return AuthViewModel(repository) as T
+            // THE FIX: You must pass both the repository AND the tokenManager here!
+            return AuthViewModel(repository, tokenManager) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

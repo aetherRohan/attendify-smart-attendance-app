@@ -21,8 +21,12 @@ class TokenManager(private val context: Context) {
     companion object {
         private val ACCESS_TOKEN_KEY = stringPreferencesKey("jwt_access_token")
         private val REFRESH_TOKEN_KEY = stringPreferencesKey("refresh_token")
+        private val USER_ROLE_KEY = stringPreferencesKey("user_role")
+        private val USER_NAME_KEY = stringPreferencesKey("user_name")
+        private val USER_ID_KEY = stringPreferencesKey("user_id")
+
         private const val MASTER_KEY_URI = "android-keystore://attendify_master_key"
-        private const val TAG = "TokenManager"
+        private const val TAG = "token"
     }
 
     private val aead: Aead
@@ -41,9 +45,10 @@ class TokenManager(private val context: Context) {
             .getPrimitive(Aead::class.java)
     }
 
-    // --- Vault Operations ---
+    suspend fun getUserRole(): String? = context.dataStore.data.first()[USER_ROLE_KEY]
+    suspend fun getUserName(): String? = context.dataStore.data.first()[USER_NAME_KEY]
+    suspend fun getUserId(): String? = context.dataStore.data.first()[USER_ID_KEY]
 
-    // SAVE: Must be a suspend function because DataStore is strictly asynchronous
     suspend fun saveAccessToken(token: String) {
         try {
             // Encrypt the token with Tink, then encode it to Base64 to save as a String
@@ -55,11 +60,29 @@ class TokenManager(private val context: Context) {
             }
             Log.i(TAG, "Token successfully encrypted and saved to vault.")
         } catch (e: Exception) {
-            // CRITICAL: Log the error stack trace so you know exactly what broke,
-            // but NEVER log the 'token' variable itself.
+
             Log.e(TAG, "CRITICAL ERROR: Failed to encrypt or save the token. Cause: ${e.message}", e)
         }
     }
+
+    suspend fun saveUserDetails(userName:String,role:String,userId:String){
+
+        try {
+            context.dataStore.edit { prefs ->
+                prefs[USER_NAME_KEY]=userName
+                prefs[USER_ROLE_KEY]=role
+                prefs[USER_ID_KEY]=userId
+            }
+            Log.i(TAG,"saved user details")
+
+        }catch (e: Exception){
+            e.printStackTrace()
+            Log.e(TAG, "failed to save user details ${e.message}")
+
+        }
+    }
+
+
 
     // READ: Synchronous version specifically designed for the OkHttp Interceptor
     fun getAccessTokenSync(): String? {

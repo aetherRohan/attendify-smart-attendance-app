@@ -16,7 +16,10 @@ class AuthRepository(val api: ApiService,val tokenManager: TokenManager) {
             LoginRequest(email = email, password = password)
         )
         if (response.isSuccessful) {
-            response.body()?.let { tokenManager.saveAccessToken(it.accessToken) }
+            response.body()?.let {
+                tokenManager.saveAccessToken(it.accessToken)
+                tokenManager.saveUserDetails(it.name,it.role,it.userId)
+            }
         }
         return response
     }
