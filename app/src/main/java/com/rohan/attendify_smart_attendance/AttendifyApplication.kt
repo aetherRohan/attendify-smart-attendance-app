@@ -4,9 +4,10 @@ import android.app.Application
 import com.rohan.attendify_smart_attendance.api.RetrofitInstance
 import com.rohan.attendify_smart_attendance.data.local.AttendifyDatabase
 import com.rohan.attendify_smart_attendance.repository.AuthRepository
+import com.rohan.attendify_smart_attendance.repository.StudentSessionRepository
 import com.rohan.attendify_smart_attendance.repository.TeacherSessionRepository
 import com.rohan.attendify_smart_attendance.security.TokenManager
-import com.rohan.attendify_smart_attendance.worker.SyncSessionWorker
+
 
 class AttendifyApplication : Application() {
 
@@ -18,9 +19,17 @@ class AttendifyApplication : Application() {
     val teacherRepository by lazy {
         TeacherSessionRepository(
             api = api,
+            database = database,
             rosterDao = database.studentRosterDao(),
+            classDao = database.classDao(),
             pendingSessionDao = database.pendingSessionDao()
         )
+    }
+
+    val studentRepository by lazy {
+
+        StudentSessionRepository
+
     }
 
     val authRepository by lazy {

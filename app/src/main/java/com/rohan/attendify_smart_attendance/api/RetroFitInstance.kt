@@ -14,7 +14,7 @@ object RetrofitInstance {
         level = HttpLoggingInterceptor.Level.BODY
     }
 
-    // Change to a function so we can pass the TokenManager in from Application
+
     fun getApi(tokenManager: TokenManager): ApiService {
 
         val client = OkHttpClient.Builder()

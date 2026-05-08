@@ -18,7 +18,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 fun TeacherDashboardScreen(
     name: String,
     viewModel: TeacherDashboardViewModel,
-    onToggle: (Boolean) -> Unit
+        onToggle: (Boolean) -> Unit
 ){
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 

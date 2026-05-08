@@ -13,4 +13,7 @@ interface StudentRosterDao {
 
     @Query("SELECT * FROM student_roster WHERE classId = :classId")
     suspend fun getStudentsForClass(classId: String): List<StudentRosterEntity>
+
+    @Query("DELETE FROM student_roster")
+    suspend fun clearAllStudents()
 }

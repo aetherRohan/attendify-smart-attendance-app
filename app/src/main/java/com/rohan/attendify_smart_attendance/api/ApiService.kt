@@ -1,6 +1,7 @@
 package com.rohan.attendify_smart_attendance.api
 
 import com.rohan.attendify_smart_attendance.data.local.entity.PendingSessionEntity
+import com.rohan.attendify_smart_attendance.dto.ClassDto
 import com.rohan.attendify_smart_attendance.dto.LoginRequest
 import com.rohan.attendify_smart_attendance.dto.LoginResponse
 import com.rohan.attendify_smart_attendance.dto.SessionSyncRequest
@@ -34,5 +35,12 @@ interface ApiService {
     suspend fun uploadOfflineSessions(
         @Body syncRequest: List<SessionSyncRequest>
     ): Response<Unit>
+
+    @GET("/api/teacher/class/getClasses")
+    suspend fun getAllClasses(): Response<List<ClassDto>>
+
+
+
+
 
 }

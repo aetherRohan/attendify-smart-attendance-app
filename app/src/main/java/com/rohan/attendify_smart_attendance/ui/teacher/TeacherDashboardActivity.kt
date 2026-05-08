@@ -20,6 +20,8 @@ class TeacherDashboardActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val name = intent.getStringExtra("USER_NAME") ?: "Teacher"
+        val role = intent.getStringExtra("USER_ROLE")
+        val id = intent.getStringExtra("USER_ID")
         setContent {
             TeacherDashboardScreen(
                 name=name,
@@ -28,6 +30,7 @@ class TeacherDashboardActivity : ComponentActivity() {
                     handleToggle(isCurrentlyScanning)
                 }
             )
+
         }
     }
 

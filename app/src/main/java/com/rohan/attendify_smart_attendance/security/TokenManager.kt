@@ -32,10 +32,10 @@ class TokenManager(private val context: Context) {
     private val aead: Aead
 
     init {
-        // 2. Initialize Google Tink Crypto
+        // Initialize Google Tink Crypto
         AeadConfig.register()
 
-        // 3. Build the secure keyset using the hardware Android Keystore
+        // Build the secure keyset using the hardware Android Keystore
         aead = AndroidKeysetManager.Builder()
             .withSharedPref(context, "tink_keyset", "tink_prefs")
             .withKeyTemplate(KeyTemplates.get("AES256_GCM"))
@@ -84,7 +84,6 @@ class TokenManager(private val context: Context) {
 
 
 
-    // READ: Synchronous version specifically designed for the OkHttp Interceptor
     fun getAccessTokenSync(): String? {
         return runBlocking {
             val encodedToken = context.dataStore.data.first()[ACCESS_TOKEN_KEY]
@@ -95,15 +94,14 @@ class TokenManager(private val context: Context) {
                 val decryptedBytes = aead.decrypt(encryptedBytes, null)
                 String(decryptedBytes)
             } catch (e: Exception) {
-                // If decryption fails (e.g., Keystore corrupted, OS updated), we log it
-                // and return null. Returning null safely forces the user to log in again.
+
                 Log.e(TAG, "SECURITY ERROR: Failed to decrypt token. It may be corrupted. Cause: ${e.message}", e)
                 null
             }
         }
     }
 
-    // DELETE: Burn the token on logout
+    // DELETE
     suspend fun clearTokens() {
         try {
             context.dataStore.edit { prefs ->

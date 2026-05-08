@@ -7,9 +7,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import com.rohan.attendify_smart_attendance.ui.auth.AuthViewModel
 import com.rohan.attendify_smart_attendance.ui.auth.AuthViewModelFactory
+import com.rohan.attendify_smart_attendance.ui.root.DashBoardActivity
 import com.rohan.attendify_smart_attendance.ui.root.RootScreen
-import com.rohan.attendify_smart_attendance.ui.student.StudentDashboardActivity
-import com.rohan.attendify_smart_attendance.ui.teacher.TeacherDashboardActivity
 import com.rohan.attendify_smart_attendance.ui.theme.AttendifySmartAttendanceTheme
 
 class MainActivity : ComponentActivity() {
@@ -26,11 +25,8 @@ class MainActivity : ComponentActivity() {
             AttendifySmartAttendanceTheme {
                 RootScreen(
                     authViewModel = authViewModel,
-                    onNavigateToTeacher = { name, role, id ->
-                        navigateTo(TeacherDashboardActivity::class.java, name, role, id)
-                    },
-                    onNavigateToStudent = { name, role, id ->
-                        navigateTo(StudentDashboardActivity::class.java, name, role, id)
+                    onNavigateToDashBoard = { name, role, id ->
+                        navigateTo(DashBoardActivity::class.java, name, role, id)
                     }
                 )
             }
@@ -42,7 +38,7 @@ class MainActivity : ComponentActivity() {
         val intent = Intent(this, activityClass).apply {
             putExtra("USER_NAME", name)
             putExtra("USER_ROLE", role)
-            putExtra("STUDENT_ID", id)
+            putExtra("USER_ID", id)
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
         startActivity(intent)

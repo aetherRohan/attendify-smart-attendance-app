@@ -33,8 +33,7 @@ fun AttendifyLogo(
     name: String = "Attendify",
     iconColor: Color?= AttendifyPurple
 ) {
-    // 1. The "Pop" Gradient: Uses your App's specific Theme Colors
-    // Blends from deep Purple -> Blue -> bright Green
+
     val gradientBrush = Brush.horizontalGradient(
         colors = listOf(
             Color(0xFF6200EA), // Deep Purple (Brand)

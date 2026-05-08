@@ -14,7 +14,7 @@ class TeacherDashboardViewModel(
     private val repository: TeacherSessionRepository
 ) : ViewModel() {
 
-    // 2. Read from the injected 'repository' variable
+    //  Read from the injected 'repository' variable
     val uiState: StateFlow<TeacherUiState> = repository.sessionStatus
         .map { status ->
             TeacherUiState(

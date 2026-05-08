@@ -1,5 +1,6 @@
 package com.rohan.attendify_smart_attendance.ui.root
 
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
@@ -17,8 +18,7 @@ import com.rohan.attendify_smart_attendance.ui.auth.SessionState
 @Composable
 fun RootScreen(
     authViewModel: AuthViewModel,
-    onNavigateToTeacher: (name: String, role: String, userId: String) -> Unit,
-    onNavigateToStudent: (name: String, role: String, userId: String) -> Unit
+    onNavigateToDashBoard:(name: String, role: String, userId: String)-> Unit
 ) {
 
     val sessionState by authViewModel.sessionState.collectAsState()
@@ -36,11 +36,7 @@ fun RootScreen(
 
         is SessionState.Authenticated -> {
             LaunchedEffect(state) {
-                if (state.role.contains("TEACHER", ignoreCase = true)) {
-                    onNavigateToTeacher(state.name, state.role, state.userId)
-                } else {
-                    onNavigateToStudent(state.name, state.role, state.userId)
-                }
+                onNavigateToDashBoard(state.name,state.role,state.userId)
             }
         }
 
@@ -50,16 +46,12 @@ fun RootScreen(
                 onNavigateToHome = { data ->
                     val user = data as? LoginResponse
                     if (user != null && !user.role.isBlank()) {
-                        val isTeacher = user.role.contains("TEACHER", ignoreCase = true)
-                        if (isTeacher) {
-                            onNavigateToTeacher(user.name, user.role, user.userId.toString())
-                        } else {
-                            onNavigateToStudent(user.name, user.role, user.userId.toString())
-                        }
+                        onNavigateToDashBoard(user.name,user.role,user.userId)
+                    }else{
+                        Log.e("auth","missing data")
                     }
                 }
             )
         }
-
     }
 }

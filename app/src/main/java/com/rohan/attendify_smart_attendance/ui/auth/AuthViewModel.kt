@@ -1,5 +1,6 @@
 package com.rohan.attendify_smart_attendance.ui.auth
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -90,6 +91,25 @@ class AuthViewModel(
         }
     }
 
+
+
+    fun logout() {
+        viewModelScope.launch {
+            try {
+
+                tokenManager.clearTokens()
+
+                // remove the local tables (like offline attendance)
+
+            } catch (e: Exception) {
+
+                Log.e("auth", "Non-fatal error clearing vault during logout", e)
+            } finally {
+
+                _sessionState.value = SessionState.Unauthenticated
+            }
+        }
+    }
 
 
     private fun checkSession() {
