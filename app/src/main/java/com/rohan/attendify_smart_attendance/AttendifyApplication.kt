@@ -28,7 +28,9 @@ class AttendifyApplication : Application() {
 
     val studentRepository by lazy {
 
-        StudentSessionRepository
+        StudentSessionRepository(
+            classDao = database.classDao()
+        )
 
     }
 

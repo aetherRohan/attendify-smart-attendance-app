@@ -7,12 +7,16 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import com.rohan.attendify_smart_attendance.AttendifyApplication
 import com.rohan.attendify_smart_attendance.service.StudentBroadcastService
 import com.rohan.attendify_smart_attendance.utils.PermissionManager
 import kotlin.getValue
 
 class StudentDashboardActivity: ComponentActivity() {
-    private val viewModel: StudentDashbaordViewmodel by viewModels()
+    private val viewModel: StudentDashboardViewmodel by viewModels(){
+        val app =application as AttendifyApplication
+        StudentViewModelFactory(app.studentRepository)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

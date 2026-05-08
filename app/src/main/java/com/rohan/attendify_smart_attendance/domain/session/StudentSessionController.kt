@@ -8,7 +8,8 @@ import kotlinx.coroutines.*
 
 class StudentSessionController(
     private val bleBroadcast: BleBroadcastClient,
-    private val sessionScope: CoroutineScope
+    private val sessionScope: CoroutineScope,
+    private val studentRepo: StudentSessionRepository
 ) {
 
     private var currentStatus = StudentSessionState()
@@ -27,10 +28,10 @@ class StudentSessionController(
     )
 
     private fun updateState() {
-        StudentSessionRepository.updateStatus(currentStatus)
+        studentRepo.updateStatus(currentStatus)
     }
 
-    fun startAttendance(classId: String, studentId: String) {
+    fun startAttendance( studentId: String) {
         Log.d("StudentController","start attendance session controller reached")
         if (studentId.isBlank()) {
             currentStatus = currentStatus.copy(errorMessage = "Invalid Student ID")

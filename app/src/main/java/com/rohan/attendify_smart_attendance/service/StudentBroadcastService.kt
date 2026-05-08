@@ -6,8 +6,10 @@ import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
+import com.rohan.attendify_smart_attendance.AttendifyApplication
 import com.rohan.attendify_smart_attendance.data.ble.BleBroadcastClient
 import com.rohan.attendify_smart_attendance.domain.session.StudentSessionController
+import com.rohan.attendify_smart_attendance.repository.StudentSessionRepository
 import com.rohan.attendify_smart_attendance.utils.NotificationHelper
 import kotlinx.coroutines.*
 
@@ -19,10 +21,15 @@ class StudentBroadcastService : Service() {
     private  val NOTIFICATION_ID = 101
 
 
+
+
     override fun onCreate() {
         super.onCreate()
         val bleBroadcast = BleBroadcastClient(this)
-        studentSessionController=StudentSessionController(bleBroadcast = bleBroadcast, sessionScope = serviceScope)
+        val app =application as AttendifyApplication
+        studentSessionController=StudentSessionController(bleBroadcast = bleBroadcast,
+                                                          sessionScope = serviceScope,
+                                                          studentRepo = app.studentRepository)
         Log.d("StudentService", "✅ Service Created")
     }
 
@@ -39,7 +46,7 @@ class StudentBroadcastService : Service() {
 
         startForegroundServicePromotion(isBroadcasting = true)
 
-        studentSessionController?.startAttendance(classId = " ", studentId = studentId)
+        studentSessionController?.startAttendance( studentId = studentId)
 
         return START_STICKY
     }
@@ -55,8 +62,7 @@ class StudentBroadcastService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     private fun startForegroundServicePromotion(isBroadcasting: Boolean) {
-        // 1. Ensure the Notification Channel is created BEFORE promotion
-        // If the channel doesn't exist, startForeground fails silently.
+
         NotificationHelper.createAttendanceNotification(this,false,"Marking Attendance")
 
         val notification = NotificationHelper.createAttendanceNotification(
@@ -68,14 +74,13 @@ class StudentBroadcastService : Service() {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) { // API 34+
 
-                // 2. Android 14 double-check: Do we actually have the permission?
-                // If we don't, this throws a SecurityException which we catch below.
+
                 val hasPermission = checkSelfPermission(android.Manifest.permission.BLUETOOTH_ADVERTISE) ==
                         android.content.pm.PackageManager.PERMISSION_GRANTED
 
                 if (!hasPermission) {
                     Log.e("StudentService", "❌ FATAL: BLUETOOTH_ADVERTISE permission missing for FGS")
-                    // You might want to trigger a callback to the UI here to show a dialog
+
                     return
                 }
 
@@ -97,7 +102,7 @@ class StudentBroadcastService : Service() {
             Log.i("StudentService", "✅ startForeground successful")
 
         } catch (e: Exception) {
-            // This will now catch the exact reason (e.g., "foregroundServiceType not declared in manifest")
+
             Log.e("StudentService", "❌ Foreground Error: ${e.message}")
             e.printStackTrace()
             stopSelf()

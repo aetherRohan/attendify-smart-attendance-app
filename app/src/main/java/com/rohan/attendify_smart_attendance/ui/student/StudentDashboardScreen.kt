@@ -14,7 +14,7 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun StudentDashboardScreen(
     name: String,
-    viewModel: StudentDashbaordViewmodel,
+    viewModel: StudentDashboardViewmodel,
     onToggle: (Boolean) -> Unit
 ){
     val state by viewModel.uiState.collectAsState()
