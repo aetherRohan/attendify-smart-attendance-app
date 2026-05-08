@@ -41,7 +41,6 @@ class TeacherDashboardActivity : ComponentActivity() {
         }
 
         // Hard-Coded value for class id (TESTING ONLY)
-
         val intent = Intent(this, TeacherScanService::class.java).apply {
             putExtra("CLASS_ID","1")
         }

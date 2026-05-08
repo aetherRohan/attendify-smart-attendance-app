@@ -122,7 +122,7 @@ class TeacherSessionRepository(
                         dto.toRoomEntity()
                     }
 
-                    //  Save everything atomically to Room
+                    //  Save everything atomically to Room to prevent data loss
                     database.withTransaction {
                         classDao.clearAllClasses()
                         rosterDao.clearAllStudents()

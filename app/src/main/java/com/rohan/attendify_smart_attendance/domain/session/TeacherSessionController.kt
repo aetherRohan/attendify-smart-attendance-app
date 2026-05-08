@@ -61,8 +61,8 @@ class TeacherSessionController(
         //fetch the student from server and store ble uuids in a hashset
         sessionScope.launch {
 
-            //for demo it fetches the student roster everytime the session starts
-            teacherRepository.fetchAndSaveRoster(classId)
+//            //for demo it fetches the student roster everytime the session starts
+//            teacherRepository.fetchAndSaveRoster(classId)
 
             val studentList = teacherRepository.getStudentsForClass(classId)
 

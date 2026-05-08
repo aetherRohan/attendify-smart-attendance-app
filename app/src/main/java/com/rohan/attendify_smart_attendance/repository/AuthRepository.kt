@@ -1,14 +1,17 @@
 package com.rohan.attendify_smart_attendance.repository
 
 import com.rohan.attendify_smart_attendance.api.ApiService
+import com.rohan.attendify_smart_attendance.data.local.AttendifyDatabase
 import com.rohan.attendify_smart_attendance.dto.LoginRequest
 import com.rohan.attendify_smart_attendance.dto.LoginResponse
 import com.rohan.attendify_smart_attendance.dto.SignupRequest
 import com.rohan.attendify_smart_attendance.security.TokenManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import retrofit2.Response
 
 
-class AuthRepository(val api: ApiService,val tokenManager: TokenManager) {
+class AuthRepository(val api: ApiService,val tokenManager: TokenManager,val database: AttendifyDatabase) {
 
     // for login
     suspend fun login(email: String, password: String): Response<LoginResponse> {
@@ -18,7 +21,7 @@ class AuthRepository(val api: ApiService,val tokenManager: TokenManager) {
         if (response.isSuccessful) {
             response.body()?.let {
                 tokenManager.saveAccessToken(it.accessToken)
-                tokenManager.saveUserDetails(it.name,it.role,it.userId)
+                tokenManager.saveUserDetails(it.name,it.role,it.userId,it.bleUuid)
             }
         }
         return response
@@ -34,5 +37,16 @@ class AuthRepository(val api: ApiService,val tokenManager: TokenManager) {
         api.registerTeacher(
             SignupRequest(name = name, email = email, password = password)
         )
+
+
+    suspend fun performLogout() {
+
+        withContext(Dispatchers.IO) {
+            // 1. Wipe the Tokens and UUID
+            tokenManager.clearTokens()
+
+            database.clearAllTables()
+        }
+    }
 
 }

@@ -81,8 +81,9 @@ class AuthViewModel(
 
                 if (handleResponse(response)) {
                     response.body()?.let {
+                        Log.i("bleuuid",it.bleUuid)
                         tokenManager.saveAccessToken(it.accessToken)
-                        tokenManager.saveUserDetails(it.name?:"User",it.role,it.userId)
+                        tokenManager.saveUserDetails(it.name?:"User",it.role,it.userId,it.bleUuid)
                     }
                 }
             } catch (e: Exception) {
@@ -97,15 +98,12 @@ class AuthViewModel(
         viewModelScope.launch {
             try {
 
-                tokenManager.clearTokens()
-
-                // remove the local tables (like offline attendance)
+               repository.performLogout()
 
             } catch (e: Exception) {
 
                 Log.e("auth", "Non-fatal error clearing vault during logout", e)
             } finally {
-
                 _sessionState.value = SessionState.Unauthenticated
             }
         }

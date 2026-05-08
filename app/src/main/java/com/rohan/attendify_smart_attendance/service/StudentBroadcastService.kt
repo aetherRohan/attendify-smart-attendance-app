@@ -35,10 +35,10 @@ class StudentBroadcastService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
-//        val studentId = intent?.getStringExtra(EXTRA_STUDENT_ID)
-        val studentId = "550e8400-e29b-41d4-a716-446655440000"
+        val bleUuid = intent?.getStringExtra("USER_BLE_UUID")
 
-        if (studentId.isNullOrEmpty()){
+
+        if (bleUuid.isNullOrEmpty()){
             Log.e("StudentService", "❌ Error: No Student ID provided.")
             stopSelf()
             return START_NOT_STICKY
@@ -46,7 +46,7 @@ class StudentBroadcastService : Service() {
 
         startForegroundServicePromotion(isBroadcasting = true)
 
-        studentSessionController?.startAttendance( studentId = studentId)
+        studentSessionController?.startAttendance( bleUuid = bleUuid)
 
         return START_STICKY
     }

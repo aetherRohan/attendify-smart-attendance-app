@@ -29,14 +29,15 @@ class AttendifyApplication : Application() {
     val studentRepository by lazy {
 
         StudentSessionRepository(
-            classDao = database.classDao()
+            classDao = database.classDao(),
+            tokenManager = tokenManager
         )
 
     }
 
     val authRepository by lazy {
         AuthRepository(
-            api,tokenManager
+            api,tokenManager,database
         )
     }
 

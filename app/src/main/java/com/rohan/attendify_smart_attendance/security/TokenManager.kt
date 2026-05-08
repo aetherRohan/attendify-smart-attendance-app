@@ -24,6 +24,7 @@ class TokenManager(private val context: Context) {
         private val USER_ROLE_KEY = stringPreferencesKey("user_role")
         private val USER_NAME_KEY = stringPreferencesKey("user_name")
         private val USER_ID_KEY = stringPreferencesKey("user_id")
+        private val USER_BLEUuID_KEY = stringPreferencesKey("user_id")
 
         private const val MASTER_KEY_URI = "android-keystore://attendify_master_key"
         private const val TAG = "token"
@@ -49,6 +50,8 @@ class TokenManager(private val context: Context) {
     suspend fun getUserName(): String? = context.dataStore.data.first()[USER_NAME_KEY]
     suspend fun getUserId(): String? = context.dataStore.data.first()[USER_ID_KEY]
 
+    suspend fun getBleUuId(): String? = context.dataStore.data.first()[USER_BLEUuID_KEY]
+
     suspend fun saveAccessToken(token: String) {
         try {
             // Encrypt the token with Tink, then encode it to Base64 to save as a String
@@ -65,13 +68,16 @@ class TokenManager(private val context: Context) {
         }
     }
 
-    suspend fun saveUserDetails(userName:String,role:String,userId:String){
+    suspend fun saveUserDetails(userName:String,role:String,userId:String,bleUuid: String){
 
         try {
             context.dataStore.edit { prefs ->
                 prefs[USER_NAME_KEY]=userName
                 prefs[USER_ROLE_KEY]=role
                 prefs[USER_ID_KEY]=userId
+                bleUuid?.let {
+                    prefs[USER_BLEUuID_KEY]=it
+                }
             }
             Log.i(TAG,"saved user details")
 

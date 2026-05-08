@@ -7,9 +7,11 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.lifecycle.lifecycleScope
 import com.rohan.attendify_smart_attendance.AttendifyApplication
 import com.rohan.attendify_smart_attendance.service.StudentBroadcastService
 import com.rohan.attendify_smart_attendance.utils.PermissionManager
+import kotlinx.coroutines.launch
 import kotlin.getValue
 
 class StudentDashboardActivity: ComponentActivity() {
@@ -25,14 +27,14 @@ class StudentDashboardActivity: ComponentActivity() {
             StudentDashboardScreen(
                 name=name,
                 viewModel = viewModel,
-                onToggle = { isBroadcasting ->
-                    handleToggle(isBroadcasting)
+                onToggle = { isBroadcasting,uuid ->
+                    handleToggle(isBroadcasting,uuid)
                 }
             )
         }
     }
 
-    private fun handleToggle(isBroadcasting: Boolean) {
+    private fun handleToggle(isBroadcasting: Boolean,bleUuid: String) {
         Log.e("DEBUG_TEST", " Activity handleToggle reached")
 
         if (!PermissionManager.hasBluetoothPermissions(this)) {
@@ -41,7 +43,9 @@ class StudentDashboardActivity: ComponentActivity() {
             return
         }
 
-        val intent = Intent(this, StudentBroadcastService::class.java)
+        val intent = Intent(this, StudentBroadcastService::class.java).apply {
+            intent.putExtra("USER_BLE_UUID",bleUuid)
+        }
         if (!isBroadcasting) {
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

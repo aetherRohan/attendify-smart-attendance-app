@@ -1,6 +1,5 @@
 package com.rohan.attendify_smart_attendance.ui.student
 import androidx.compose.foundation.layout.*
-
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -15,9 +14,10 @@ import androidx.compose.ui.unit.sp
 fun StudentDashboardScreen(
     name: String,
     viewModel: StudentDashboardViewmodel,
-    onToggle: (Boolean) -> Unit
+    onToggle: (Boolean, String) -> Unit
 ){
     val state by viewModel.uiState.collectAsState()
+    val bleUuid by viewModel.bleUuid.collectAsState()
 
     Column(
         modifier = Modifier
@@ -37,7 +37,7 @@ fun StudentDashboardScreen(
         Spacer(modifier = Modifier.height(32.dp))
 
         Button(
-            onClick = { onToggle(state.isBroadcasting) },
+            onClick = { onToggle(state.isBroadcasting,bleUuid) },
             modifier = Modifier.size(260.dp),
             shape = CircleShape,
             colors = ButtonDefaults.buttonColors(

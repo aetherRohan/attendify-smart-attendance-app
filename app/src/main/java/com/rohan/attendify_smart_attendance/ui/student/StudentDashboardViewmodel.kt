@@ -4,15 +4,26 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.rohan.attendify_smart_attendance.repository.StudentSessionRepository
-import com.rohan.attendify_smart_attendance.ui.teacher.TeacherDashboardViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 class StudentDashboardViewmodel(
     private val repository: StudentSessionRepository
 ): ViewModel(){
+
+    private var _bleUuid= MutableStateFlow("")
+
+    val bleUuid: StateFlow<String> = _bleUuid
+
+    init {
+        viewModelScope.launch {
+        _bleUuid.value=repository.getBleUuid()
+        }
+    }
     val uiState: StateFlow<StudentUiState> = repository.sessionStatus
         .map { status ->
             StudentUiState(
@@ -39,7 +50,7 @@ class StudentViewModelFactory(
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(TeacherDashboardViewModel::class.java)) {
+        if (modelClass.isAssignableFrom(StudentDashboardViewmodel::class.java)) {
             @Suppress("UNCHECKED_CAST")
             return StudentDashboardViewmodel(repository) as T
         }

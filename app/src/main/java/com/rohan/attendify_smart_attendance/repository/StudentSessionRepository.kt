@@ -4,6 +4,7 @@ import android.util.Log
 import com.rohan.attendify_smart_attendance.data.local.dao.ClassDao
 import com.rohan.attendify_smart_attendance.data.local.entity.ClassEntity
 import com.rohan.attendify_smart_attendance.domain.session.StudentSessionController
+import com.rohan.attendify_smart_attendance.security.TokenManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,8 +13,7 @@ import kotlinx.coroutines.flow.onStart
 
 class StudentSessionRepository(
    private val classDao: ClassDao,
-
-
+    private val tokenManager: TokenManager
 ) {
 
     private var _sessionStatus = MutableStateFlow(StudentSessionController.StudentSessionState())
@@ -35,6 +35,10 @@ class StudentSessionRepository(
                 // Emit an empty list to prevent the UI from crashing if the DB fails
                 emit(emptyList())
             }
+    }
+
+    suspend fun getBleUuid(): String{
+        return tokenManager.getBleUuId()?:""
     }
 
 

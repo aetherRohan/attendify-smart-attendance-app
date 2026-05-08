@@ -31,9 +31,9 @@ class StudentSessionController(
         studentRepo.updateStatus(currentStatus)
     }
 
-    fun startAttendance( studentId: String) {
+    fun startAttendance( bleUuid: String) {
         Log.d("StudentController","start attendance session controller reached")
-        if (studentId.isBlank()) {
+        if (bleUuid.isBlank()) {
             currentStatus = currentStatus.copy(errorMessage = "Invalid Student ID")
             updateState()
             return
@@ -58,7 +58,7 @@ class StudentSessionController(
 
             while (isActive && System.currentTimeMillis() < endTime) {
                 // BROADCAST =3 min
-                startAdvertisingHelper(studentId)
+                startAdvertisingHelper(bleUuid)
                 delay(BROADCAST_WINDOW)
 
                 //  REST =2 min
