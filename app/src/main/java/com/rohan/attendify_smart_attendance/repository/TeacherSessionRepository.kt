@@ -1,5 +1,6 @@
 package com.rohan.attendify_smart_attendance.repository
 
+import android.R
 import android.util.Log
 import androidx.room.withTransaction
 import com.rohan.attendify_smart_attendance.api.ApiService
@@ -11,6 +12,7 @@ import com.rohan.attendify_smart_attendance.data.local.entity.ClassEntity
 import com.rohan.attendify_smart_attendance.data.local.entity.PendingSessionEntity
 import com.rohan.attendify_smart_attendance.data.local.entity.StudentRosterEntity
 import com.rohan.attendify_smart_attendance.domain.session.TeacherSessionController
+import com.rohan.attendify_smart_attendance.dto.CreateClassRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -53,7 +55,6 @@ class TeacherSessionRepository(
 
                 val roomEntities = response.body()!!.map { it.toRoomEntity() }
 
-
                 rosterDao.insertRoster(roomEntities)
                 Log.i("session","StudentRoster fetched from server and saved to db")
             } else {
@@ -64,6 +65,7 @@ class TeacherSessionRepository(
             Log.e("session", "${e.message}")
         }
     }
+
 
     suspend fun getStudentsForClass(classId: String): List<StudentRosterEntity> {
         Log.e("session", "trying to fetch student from db")
@@ -89,13 +91,43 @@ class TeacherSessionRepository(
     }
 
 
+   suspend fun createClass(className: String,section: String,duration: String){
+       coroutineScope {
+           try {
+               Log.i("joinClass", "initiating the call to join class")
+
+               val classReqDto= CreateClassRequest(
+                   className=className,
+                   section = section,
+                   duration=duration
+               )
+
+               val classResponse = api.createClass(classReqDto)
+
+               if (classResponse.isSuccessful && classResponse.body() != null) {
+
+                   val classResponseBody = classResponse.body()!!
+                   val classEntity = classResponseBody.toRoomEntity()
+
+                   database.withTransaction {
+                       classDao.insertClass(classEntity)
+                   }
+               }
+           } catch (e: Exception) {
+               e.printStackTrace()
+               Log.e("joinClass", "${e.message}")
+           }
+       }
+   }
+
+
     suspend fun syncAllTeacherData() {
         coroutineScope {
             try {
                 Log.i("TeacherRepo", "Starting Eager Sync for Teacher")
 
                 // 1. Fetch Class List from Spring Boot
-                val classResponse = api.getAllClasses()
+                val classResponse = api.getAllClassesForTeacher()
 
                 if (classResponse.isSuccessful && classResponse.body() != null) {
                     val classDtos = classResponse.body()!!
@@ -199,6 +231,5 @@ class TeacherSessionRepository(
             }
         }
     }
-
  }
 

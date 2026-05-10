@@ -11,8 +11,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.rohan.attendify_smart_attendance.ui.theme.AttendifyPurple
@@ -59,10 +57,10 @@ fun DynamicFab(
         shape = CircleShape
     ) {
         if (isTeacher) {
+
             Icon(Icons.Default.Add, contentDescription = "Create Class")
         } else {
-            // Assuming you have a custom link/join icon, using text or a standard icon here
-            Text("Join", modifier = Modifier.padding(horizontal = 16.dp), fontWeight = FontWeight.Bold)
+            Text("Join Class", modifier = Modifier.padding(horizontal = 16.dp), fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -121,4 +119,9 @@ fun DrawerContent(
             }
         }
     }
+
+
+
+
+
 }

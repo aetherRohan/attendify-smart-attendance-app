@@ -6,7 +6,7 @@ data class StudentRosterDto(
     val classId: String,
     val bleUuid: String,
     val name: String,
-    val rollNumber: String
+    val rollNumber: String?
 ) {
 
     fun toRoomEntity(): StudentRosterEntity {
@@ -15,7 +15,7 @@ data class StudentRosterDto(
             classId = this.classId,
             bleUuid = this.bleUuid,
             name = this.name,
-            rollNumber = this.rollNumber
+            rollNumber = this.rollNumber?:""
         )
     }
 }

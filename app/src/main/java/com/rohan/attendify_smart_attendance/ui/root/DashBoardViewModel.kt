@@ -24,11 +24,14 @@ class DashBoardViewModel(
 
     private val isTeacher = userRole.contains("TEACHER", ignoreCase = true)
 
+    private val _isSyncing = MutableStateFlow(false)
+    val isSyncing: StateFlow<Boolean> = _isSyncing.asStateFlow()
 
 
-    // need to call from student repo in the else block but for testing added only teacher repo
+
+
     val classListState: StateFlow<List<ClassEntity>> = (if (isTeacher) teacherRepo.getLocalClassesFlow()
-                                                              else teacherRepo.getLocalClassesFlow())
+                                                              else studentRepo.getLocalClassesFlow())
 
         .catch { e ->
             Log.e("DashBoardViewModel", "Database Error: ${e.message}", e)
@@ -41,26 +44,56 @@ class DashBoardViewModel(
         )
 
 
-    private val _isSyncing = MutableStateFlow(false)
-    val isSyncing: StateFlow<Boolean> = _isSyncing.asStateFlow()
-
-
     // This ONLY talks to Retrofit. When Retrofit saves any new class to Room,
-
     fun syncDashboardData() {
         viewModelScope.launch {
-            _isSyncing.value = true // Show loading spinner
-
             try {
                 if (isTeacher) {
 
                    teacherRepo.syncAllTeacherData()
                 } else {
-                     //studentRepo.syncStudentDashboard()
+                     studentRepo.syncAllStudentClass()
                 }
             } catch (e: Exception) {
 
                 Log.e("DashBoardViewModel", "Network Sync Failed: ${e.message}")
+            } finally {
+            }
+        }
+    }
+
+    fun createClass(className: String,section: String,duration: String) {
+        viewModelScope.launch {
+
+            _isSyncing.value = true
+            try {
+                teacherRepo.createClass(className,section,duration)
+                Log.i("joinClass", "calling join class method from teacher repo")
+
+            } catch (e: Exception) {
+
+                e.printStackTrace()
+                Log.e("joinClass", "${e.message}")
+
+            } finally {
+                _isSyncing.value = false
+            }
+        }
+    }
+
+    fun joinClass(classCode: String) {
+        viewModelScope.launch {
+
+            _isSyncing.value = true
+            try {
+                studentRepo.joinClass(classCode)
+                Log.i("joinClass", "calling join class method from student repo")
+
+            } catch (e: Exception) {
+
+                e.printStackTrace()
+                Log.e("joinClass", "${e.message}")
+
             } finally {
                 _isSyncing.value = false
             }

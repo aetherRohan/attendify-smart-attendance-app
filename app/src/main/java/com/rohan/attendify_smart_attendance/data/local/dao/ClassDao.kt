@@ -16,6 +16,9 @@ interface ClassDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
      fun insertClasses(classes: List<ClassEntity>)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertClass(classes: ClassEntity)
+
     @Query("DELETE FROM classes")
      fun clearAllClasses()
 

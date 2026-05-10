@@ -1,7 +1,8 @@
 package com.rohan.attendify_smart_attendance.api
 
-import com.rohan.attendify_smart_attendance.data.local.entity.PendingSessionEntity
+import retrofit2.http.Query
 import com.rohan.attendify_smart_attendance.dto.ClassDto
+import com.rohan.attendify_smart_attendance.dto.CreateClassRequest
 import com.rohan.attendify_smart_attendance.dto.LoginRequest
 import com.rohan.attendify_smart_attendance.dto.LoginResponse
 import com.rohan.attendify_smart_attendance.dto.SessionSyncRequest
@@ -10,7 +11,6 @@ import com.rohan.attendify_smart_attendance.dto.StudentRosterDto
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
-import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.Path
 
@@ -26,21 +26,22 @@ interface ApiService {
     suspend fun registerStudent(@Body request: SignupRequest): Response<LoginResponse>
 
     @GET("/api/teacher/class/{classId}/students")
-    suspend fun getClassRoster(
-        @Path("classId") classId: String
-    ): Response<List<StudentRosterDto>>
+    suspend fun getClassRoster(@Path("classId") classId: String): Response<List<StudentRosterDto>>
 
 
     @POST("/api/teacher/session/sync")
-    suspend fun uploadOfflineSessions(
-        @Body syncRequest: List<SessionSyncRequest>
-    ): Response<Unit>
+    suspend fun uploadOfflineSessions(@Body syncRequest: List<SessionSyncRequest>): Response<Unit>
 
     @GET("/api/teacher/class/getClasses")
-    suspend fun getAllClasses(): Response<List<ClassDto>>
+    suspend fun getAllClassesForTeacher(): Response<List<ClassDto>>
 
+    @GET("/api/student/class/getClasses")
+    suspend fun getAllClassesForStudent(): Response<List<ClassDto>>
 
+    @POST("/api/student/class/joinClass")
+    suspend fun joinClass(@Query("classCode") classCode: String): Response<ClassDto>
 
-
+    @POST("/api/teacher/class/createClass")
+    suspend fun createClass(@Body classDto: CreateClassRequest): Response<ClassDto>
 
 }

@@ -56,6 +56,9 @@ class DashBoardActivity : ComponentActivity() {
                 viewModel,
                 onLogout = {
                     authViewModel.logout()
+                },
+                onClickOpenClassDetails = {
+                    //TODO  "open class details tab"
                 }
             )
         }

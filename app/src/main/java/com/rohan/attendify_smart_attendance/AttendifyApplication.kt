@@ -13,7 +13,7 @@ class AttendifyApplication : Application() {
 
     val tokenManager by lazy { TokenManager(this) }
     val database by lazy { AttendifyDatabase.getDatabase(this) }
-    val api by lazy { RetrofitInstance.getApi(tokenManager) }
+    val api by lazy { RetrofitInstance.getApi(this,tokenManager) }
 
 
     val teacherRepository by lazy {
@@ -30,7 +30,9 @@ class AttendifyApplication : Application() {
 
         StudentSessionRepository(
             classDao = database.classDao(),
-            tokenManager = tokenManager
+            tokenManager = tokenManager,
+            api = api,
+            database = database
         )
 
     }

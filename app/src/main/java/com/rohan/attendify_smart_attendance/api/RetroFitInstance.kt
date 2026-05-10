@@ -1,5 +1,7 @@
 package com.rohan.attendify_smart_attendance.api
 
+import android.content.Context
+import com.rohan.attendify_smart_attendance.security.TokenAuthenticator
 import com.rohan.attendify_smart_attendance.security.TokenManager
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -15,12 +17,12 @@ object RetrofitInstance {
     }
 
 
-    fun getApi(tokenManager: TokenManager): ApiService {
+    fun getApi(context: Context, tokenManager: TokenManager): ApiService {
 
         val client = OkHttpClient.Builder()
-            .addInterceptor(loggingInterceptor) // Keep your existing logging!
-            // --- THE NEW TOKEN INTERCEPTOR ---
+            .addInterceptor(loggingInterceptor)
             .addInterceptor { chain ->
+
                 val requestBuilder = chain.request().newBuilder()
 
                 // Grab the token from Jetpack DataStore/Tink vault
@@ -30,10 +32,10 @@ object RetrofitInstance {
                 if (!token.isNullOrEmpty()) {
                     requestBuilder.addHeader("Authorization", "Bearer $token")
                 }
-
                 chain.proceed(requestBuilder.build())
             }
 
+            .authenticator (TokenAuthenticator(context = context, tokenManager = tokenManager))
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(15, TimeUnit.SECONDS)
             .writeTimeout(15, TimeUnit.SECONDS)

@@ -19,7 +19,8 @@ fun DashboardScreen(
     userRole: String,
     userId: String,
     viewModel: DashBoardViewModel,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onClickOpenClassDetails:()-> Unit
 ) {
 
     LaunchedEffect(Unit) {
@@ -28,12 +29,41 @@ fun DashboardScreen(
 
     val classList by viewModel.classListState.collectAsStateWithLifecycle()
 
+    var showCreateClassSheet by remember { mutableStateOf(false) }
+    var showJoinClassDialog by remember { mutableStateOf(false) }
 
     val isTeacher = userRole.contains("TEACHER", ignoreCase = true)
     val primaryRoleColor = if (isTeacher) AttendifyBlue else AttendifyGreen
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
+
+    if (showCreateClassSheet){
+        CreateClassBottomSheet(
+            roleColor = primaryRoleColor,
+            onDismiss = {
+                showCreateClassSheet=false
+            },
+            onCreateClick = { className, section, duration ->
+
+                viewModel.createClass(className,section,duration)
+                showCreateClassSheet=false
+            }
+        )
+    }
+
+    if (showJoinClassDialog){
+        JoinClassDialog(
+            roleColor = primaryRoleColor,
+            onDismiss = {
+                showJoinClassDialog=false
+            },
+            onJoinClick = {classCode ->
+                viewModel.joinClass(classCode)
+                showJoinClassDialog=false
+            }
+        )
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -59,27 +89,27 @@ fun DashboardScreen(
                     roleColor = primaryRoleColor,
                     onClick = {
                         if (isTeacher) {
-                            /// TODO: Open "Create Class" BottomSheet
+                            showCreateClassSheet=true
                         } else {
-                            /// TODO: Open "Join Class" Dialog
+                           showJoinClassDialog=true
                         }
                     }
                 )
             },
-//            containerColor = Backgroundwhite
+
         ) { paddingValues ->
-            // 4. The Main Content
+
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
-                // For now, just a placeholder list. You will replace this with your actual ClassCards
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+                    // 1. The Header
                     item {
                         Text(
                             text = "My Classes",
@@ -88,7 +118,6 @@ fun DashboardScreen(
                             modifier = Modifier.padding(bottom = 8.dp)
                         )
                     }
-
 
                     if (classList.isEmpty()) {
                         item {
@@ -99,33 +128,21 @@ fun DashboardScreen(
                             )
                         }
                     } else {
-                        // Loop through the actual database data
-                        items(classList.size) { index ->
+
+                        items(
+                            count = classList.size,
+                            key = { index -> classList[index].classId }
+                        ) { index ->
                             val currentClass = classList[index]
 
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(120.dp),
-                                colors = CardDefaults.cardColors(containerColor = Color.White),
-                                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                            ) {
-
-                                Column(modifier = Modifier.padding(16.dp)) {
-                                    Text(
-                                        text = currentClass.className,
-                                        fontWeight = FontWeight.Bold,
-                                        style = MaterialTheme.typography.titleLarge
-                                    )
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    Text(
-                                        text = currentClass.duration,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = Color.Gray
-                                    )
-
+                            ClassCard(
+                                className = currentClass.className,
+                                duration = currentClass.duration,
+                                section = currentClass.section,
+                                onClick = {
+                                    onClickOpenClassDetails
                                 }
-                            }
+                            )
                         }
                     }
                 }

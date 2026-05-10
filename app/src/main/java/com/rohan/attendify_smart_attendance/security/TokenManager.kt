@@ -24,7 +24,7 @@ class TokenManager(private val context: Context) {
         private val USER_ROLE_KEY = stringPreferencesKey("user_role")
         private val USER_NAME_KEY = stringPreferencesKey("user_name")
         private val USER_ID_KEY = stringPreferencesKey("user_id")
-        private val USER_BLEUuID_KEY = stringPreferencesKey("user_id")
+        private val USER_BLE_UUID_KEY = stringPreferencesKey("user_ble_uuid")
 
         private const val MASTER_KEY_URI = "android-keystore://attendify_master_key"
         private const val TAG = "token"
@@ -50,7 +50,8 @@ class TokenManager(private val context: Context) {
     suspend fun getUserName(): String? = context.dataStore.data.first()[USER_NAME_KEY]
     suspend fun getUserId(): String? = context.dataStore.data.first()[USER_ID_KEY]
 
-    suspend fun getBleUuId(): String? = context.dataStore.data.first()[USER_BLEUuID_KEY]
+    suspend fun getBleUuId(): String? = context.dataStore.data.first()[USER_BLE_UUID_KEY]
+    suspend fun getRefreshToken(): String? = context.dataStore.data.first()[REFRESH_TOKEN_KEY]
 
     suspend fun saveAccessToken(token: String) {
         try {
@@ -68,7 +69,7 @@ class TokenManager(private val context: Context) {
         }
     }
 
-    suspend fun saveUserDetails(userName:String,role:String,userId:String,bleUuid: String){
+    suspend fun saveUserDetails(userName:String,role:String,userId:String,bleUuid: String?,refreshToken: String){
 
         try {
             context.dataStore.edit { prefs ->
@@ -76,8 +77,9 @@ class TokenManager(private val context: Context) {
                 prefs[USER_ROLE_KEY]=role
                 prefs[USER_ID_KEY]=userId
                 bleUuid?.let {
-                    prefs[USER_BLEUuID_KEY]=it
+                    prefs[USER_BLE_UUID_KEY]=it
                 }
+                prefs[REFRESH_TOKEN_KEY]=refreshToken
             }
             Log.i(TAG,"saved user details")
 
@@ -85,6 +87,20 @@ class TokenManager(private val context: Context) {
             e.printStackTrace()
             Log.e(TAG, "failed to save user details ${e.message}")
 
+        }
+    }
+
+    suspend fun updateTokens(refreshToken: String,accessToken: String){
+
+        try {
+            saveAccessToken(accessToken)
+
+            context.dataStore.edit { prefs->
+                prefs[REFRESH_TOKEN_KEY]=refreshToken
+            }
+            Log.i("token","Saved tokens")
+        }catch (e: Exception){
+            Log.e("token","failed saving tokens")
         }
     }
 
@@ -108,7 +124,7 @@ class TokenManager(private val context: Context) {
     }
 
     // DELETE
-    suspend fun clearTokens() {
+    suspend fun clearSession() {
         try {
             context.dataStore.edit { prefs ->
                 prefs.clear()

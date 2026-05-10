@@ -83,7 +83,7 @@ class AuthViewModel(
                     response.body()?.let {
                         Log.i("bleuuid",it.bleUuid)
                         tokenManager.saveAccessToken(it.accessToken)
-                        tokenManager.saveUserDetails(it.name?:"User",it.role,it.userId,it.bleUuid)
+                        tokenManager.saveUserDetails(it.name?:"User",it.role,it.userId,it.bleUuid,it.refreshToken)
                     }
                 }
             } catch (e: Exception) {

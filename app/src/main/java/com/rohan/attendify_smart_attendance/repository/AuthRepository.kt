@@ -21,7 +21,7 @@ class AuthRepository(val api: ApiService,val tokenManager: TokenManager,val data
         if (response.isSuccessful) {
             response.body()?.let {
                 tokenManager.saveAccessToken(it.accessToken)
-                tokenManager.saveUserDetails(it.name,it.role,it.userId,it.bleUuid)
+                tokenManager.saveUserDetails(it.name,it.role,it.userId,it.bleUuid,it.refreshToken)
             }
         }
         return response
@@ -43,7 +43,7 @@ class AuthRepository(val api: ApiService,val tokenManager: TokenManager,val data
 
         withContext(Dispatchers.IO) {
             // 1. Wipe the Tokens and UUID
-            tokenManager.clearTokens()
+            tokenManager.clearSession()
 
             database.clearAllTables()
         }
