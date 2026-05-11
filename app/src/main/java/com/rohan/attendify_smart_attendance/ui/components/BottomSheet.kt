@@ -9,11 +9,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material.icons.filled.StopCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -118,6 +120,95 @@ fun ScanBottomSheet(
                     }
                 }
             }
+        }
+    }
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ActiveBroadcastBottomSheet(
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true,
+        confirmValueChange = { newState ->
+            newState != SheetValue.Hidden // Prevent external taps and downward swipes
+        }
+    )
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        properties = ModalBottomSheetProperties(
+            shouldDismissOnBackPress = false // Release back-press to the internal BackHandler
+        ),
+        containerColor = Color.White,
+        dragHandle = { BottomSheetDefaults.DragHandle() }
+    ) {
+        // Intercept back navigation directly within the bottom sheet window
+        BackHandler(enabled = true) {
+            Toast.makeText(
+                context,
+                "Press the Stop button to cancel broadcasting.",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 16.dp)
+                .padding(bottom = 32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Header Row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text("Marking Attendance", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                    Text("Broadcasting signal...", color = AttendifyGreen, style = MaterialTheme.typography.bodyMedium)
+                }
+
+                // Stop Button
+                IconButton(
+                    onClick = debounced { onDismiss() },
+                    modifier = Modifier.background(AttendifyRed.copy(alpha = 0.1f), CircleShape)
+                ) {
+                    Icon(Icons.Default.StopCircle, contentDescription = "Stop", tint = AttendifyRed)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(48.dp))
+
+            // Visual Indicator for Broadcasting
+            Box(
+                modifier = Modifier
+                    .size(120.dp)
+                    .clip(CircleShape)
+                    .background(AttendifyGreen.copy(alpha = 0.15f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Sensors,
+                    contentDescription = "Broadcasting",
+                    modifier = Modifier.size(64.dp),
+                    tint = AttendifyGreen
+                )
+            }
+
+            Spacer(modifier = Modifier.height(48.dp))
+
+            Text(
+                text = "Please keep this screen open and remain near the teacher's device.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Gray,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
         }
     }
 }

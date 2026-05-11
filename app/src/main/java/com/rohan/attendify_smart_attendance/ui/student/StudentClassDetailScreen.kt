@@ -1,34 +1,35 @@
-package com.rohan.attendify_smart_attendance.ui.teacher
+package com.rohan.attendify_smart_attendance.ui.student
 
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.runtime.Composable
+import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.BluetoothSearching
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.rohan.attendify_smart_attendance.ui.components.ActiveBroadcastBottomSheet
 import com.rohan.attendify_smart_attendance.ui.components.ClassInfoCard
-import com.rohan.attendify_smart_attendance.ui.components.TeacherClassSessionCard
-import com.rohan.attendify_smart_attendance.ui.components.ScanBottomSheet
+import com.rohan.attendify_smart_attendance.ui.components.StudentSessionCard
 import com.rohan.attendify_smart_attendance.ui.components.debounced
 import com.rohan.attendify_smart_attendance.ui.theme.*
 
-
-// --- Temporary Mock Data
-data class MockSession(val id: String, val serialNumber: Int, val date: String, val presentCount: Int)
-
+data class StudentSessionRecord(val id: String, val date: String, val isPresent: Boolean)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TeacherClassDetailScreen(
+fun StudentClassDetailScreen(
     name: String?,
     userId: String?,
     classId: String?,
@@ -36,33 +37,30 @@ fun TeacherClassDetailScreen(
     duration: String?,
     section: String?,
     classCode: String?,
-    viewModel: TeacherClassDetailViewModel,
-    onStartScanClick: (Boolean, String) -> Unit,
-    onClassSessionCardCLick: () -> Unit,
-    onBackClick: () -> Unit = {} // Added for top bar navigation
+    bleUuid: String?,
+    viewModel: StudentClassDetailViewModel,
+    onStartBroadcastClick: (Boolean, String?) -> Unit,
+    onBackClick: () -> Unit = {}
 ) {
-    // State for the Bottom Sheet
-    var showScanningSheet by remember { mutableStateOf(false) }
+    var showBroadcastingSheet by remember { mutableStateOf(false) }
 
-    val state by viewModel.uiState.collectAsState()
-
-
-    // Mock Data for UI Preview (Replace with viewModel.pastSessions.collectAsState() etc.)
+    // Mock Data for UI Preview (Replace with viewModel state collection)
     val pastSessions = listOf(
-        MockSession("1", 8, "Oct 26, 2024 • 10:00 AM", 42),
-        MockSession("2", 7, "Oct 24, 2024 • 10:00 AM", 45),
-        MockSession("3", 6, "Oct 22, 2024 • 10:00 AM", 44),
-        MockSession("4", 5, "Oct 22, 2024 • 10:00 AM", 44),
-        MockSession("5", 4, "Oct 22, 2024 • 10:00 AM", 44),
-        MockSession("6", 3, "Oct 22, 2024 • 10:00 AM", 44),
-        MockSession("7", 2, "Oct 22, 2024 • 10:00 AM", 44),
-        MockSession("8", 1, "Oct 22, 2024 • 10:00 AM", 44)
+        StudentSessionRecord("3", "Oct 26, 2024 • 10:00 AM", true),
+        StudentSessionRecord("2", "Oct 24, 2024 • 10:00 AM", false),
+        StudentSessionRecord("1", "Oct 22, 2024 • 10:00 AM", true)
     )
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Class Details", fontWeight = FontWeight.Bold) },
+                title = {
+                    Text(
+                        text = "Class Details",
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -85,38 +83,39 @@ fun TeacherClassDetailScreen(
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
+            // --- DISTINCT CLASS INFORMATION SECTION ---
             ClassInfoCard(
-                className=className,
-                duration = duration,
+                className = className,
                 classCode = classCode,
-                section = section
+                section = section,
+                duration = duration
             )
 
-            Spacer(modifier = Modifier.height(26.dp))
-           // Start Class
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // --- MAIN ACTION BUTTON ---
             Button(
                 onClick = debounced {
-                    showScanningSheet = true
-                    if (classId != null) {
-                        onStartScanClick(true, classId) // Trigger the actual Bluetooth service
-                    }
+                    showBroadcastingSheet = true
+                    onStartBroadcastClick(true, bleUuid)
+                    Log.i("DEBUS_TEST", "passed ble to function :$bleUuid")
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(64.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = AttendifyBlue),
+                colors = ButtonDefaults.buttonColors(containerColor = AttendifyGreen),
                 shape = RoundedCornerShape(16.dp),
                 elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
             ) {
-                Icon(Icons.Default.BluetoothSearching, contentDescription = null, modifier = Modifier.size(24.dp))
+                Icon(Icons.Default.Sensors, contentDescription = null, modifier = Modifier.size(24.dp))
                 Spacer(modifier = Modifier.width(12.dp))
-                Text("Start Attendance Session", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text("Mark My Attendance", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "Past Sessions",
+                text = "My Attendance History",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = Color.DarkGray
@@ -124,34 +123,29 @@ fun TeacherClassDetailScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            // --- HISTORY LIST ---
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 contentPadding = PaddingValues(bottom = 24.dp)
             ) {
                 items(pastSessions, key = { it.id }) { session ->
-                    TeacherClassSessionCard(
-                        serialNumber = session.serialNumber,
+                    StudentSessionCard(
                         date = session.date,
-                        presentCount = session.presentCount,
-                        onClick = onClassSessionCardCLick
+                        isPresent = session.isPresent
                     )
                 }
             }
         }
     }
 
-    if (showScanningSheet) {
-        ScanBottomSheet(
-            state.studentsList,
+    // --- BOTTOM SHEET ---
+    if (showBroadcastingSheet) {
+        ActiveBroadcastBottomSheet(
             onDismiss = {
-                showScanningSheet = false
-                if (classId != null) {
-                    onStartScanClick(false, classId) // Stop the scan
-                }
+                showBroadcastingSheet = false
+                onStartBroadcastClick(false, bleUuid)
             }
         )
     }
 }
-
-

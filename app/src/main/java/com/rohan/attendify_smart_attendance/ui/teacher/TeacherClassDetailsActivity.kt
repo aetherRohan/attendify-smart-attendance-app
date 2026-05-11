@@ -24,11 +24,20 @@ class TeacherClassDetailsActivity: ComponentActivity() {
         val role = intent.getStringExtra("USER_ROLE")
         val id = intent.getStringExtra("USER_ID")
         val classId = intent.getStringExtra("EXTRA_CLASS_ID")
+        val className = intent.getStringExtra("CLASS_NAME")
+        val duration = intent.getStringExtra("CLASS_DURATION")
+        val section = intent.getStringExtra("CLASS_SECTION")
+        val classCode = intent.getStringExtra("CLASS_CODE")
+
         setContent {
             TeacherClassDetailScreen(
-                name=name,
+                name = name,
                 userId = id,
-                classId =classId ,
+                classId = classId,
+                className = className,
+                duration = duration,
+                section = section,
+                classCode = classCode,
                 viewModel = viewModel,
                 onStartScanClick = { isCurrentlyScanning,classId ->
                     Log.i("teachService","button clicked start/stop")
@@ -37,6 +46,9 @@ class TeacherClassDetailsActivity: ComponentActivity() {
                 onClassSessionCardCLick = {
                     //TODO OPEN CLASS_SESSION DETAIL SCREEN
                     // FOR TEACHER SHOW ALL THE STUDENTS WHO ARE PRESENT OR ABSENT
+                },
+                onBackClick = {
+                    finish()
                 }
             )
 

@@ -13,7 +13,8 @@ import com.rohan.attendify_smart_attendance.MainActivity
 import com.rohan.attendify_smart_attendance.ui.auth.AuthViewModel
 import com.rohan.attendify_smart_attendance.ui.auth.AuthViewModelFactory
 import com.rohan.attendify_smart_attendance.ui.auth.SessionState
-import com.rohan.attendify_smart_attendance.ui.student.StudentDashboardActivity
+import com.rohan.attendify_smart_attendance.ui.student.StudentClassDetailActivity
+
 import com.rohan.attendify_smart_attendance.ui.teacher.TeacherClassDetailsActivity
 
 class DashBoardActivity : ComponentActivity() {
@@ -31,7 +32,7 @@ class DashBoardActivity : ComponentActivity() {
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        val name = intent.getStringExtra("USER_NAME") ?: "Teacher"
+        val name = intent.getStringExtra("USER_NAME") ?: ""
         val role = intent.getStringExtra("USER_ROLE")
         val id = intent.getStringExtra("USER_ID")
 
@@ -59,21 +60,30 @@ class DashBoardActivity : ComponentActivity() {
                 onLogout = {
                     authViewModel.logout()
                 },
-                onClickOpenClassDetails = {isTeacher,name,userId,classId->
+                onClickOpenClassDetails = {isTeacher,name,userId,classId,className,duration,section,classCode->
                     if (isTeacher)
-                        navigateTo(TeacherClassDetailsActivity::class.java,name,userId,classId)
+                        navigateTo(TeacherClassDetailsActivity::class.java,name,userId,
+                                     classId,className,duration,section,classCode)
                     else
-                        navigateTo(StudentDashboardActivity::class.java,name,userId,classId)
+                        navigateTo(StudentClassDetailActivity::class.java,name,userId,
+                                     classId,className,duration,section,classCode)
                 }
             )
         }
     }
 
-    private fun navigateTo(activityClass: Class<*>, name: String, userId: String,classId: String) {
+    private fun navigateTo(activityClass: Class<*>, name: String, userId: String,
+                           classId: String,className: String,duration: String,
+                           section: String,classCode: String) {
+
         val intent = Intent(this, activityClass).apply {
             putExtra("USER_NAME", name)
             putExtra("EXTRA_CLASS_ID", classId)
             putExtra("USER_ID", userId)
+            putExtra("CLASS_NAME", className)
+            putExtra("CLASS_DURATION", duration)
+            putExtra("CLASS_SECTION", section)
+            putExtra("CLASS_CODE", classCode)
         }
         startActivity(intent)
     }

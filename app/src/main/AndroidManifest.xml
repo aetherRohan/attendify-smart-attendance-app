@@ -48,7 +48,7 @@
         <activity android:name=".ui.teacher.TeacherClassDetailsActivity"
             android:exported="true"/>
 
-        <activity android:name=".ui.student.StudentDashboardActivity"
+        <activity android:name=".ui.student.StudentClassDetailActivity"
             android:exported="true"/>
 
         <service

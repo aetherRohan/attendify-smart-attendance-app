@@ -33,6 +33,7 @@ class StudentSessionController(
 
     fun startAttendance( bleUuid: String) {
         Log.d("StudentController","start attendance session controller reached")
+        Log.e("bleuuid","function startAttendance called from controller bleUuid:${bleUuid} ")
         if (bleUuid.isBlank()) {
             currentStatus = currentStatus.copy(errorMessage = "Invalid Student ID")
             updateState()

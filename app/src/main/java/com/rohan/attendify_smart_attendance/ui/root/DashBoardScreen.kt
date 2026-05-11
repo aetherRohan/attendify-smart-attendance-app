@@ -20,7 +20,7 @@ fun DashboardScreen(
     userId: String,
     viewModel: DashBoardViewModel,
     onLogout: () -> Unit,
-    onClickOpenClassDetails:(Boolean, String, String, String)-> Unit
+    onClickOpenClassDetails:(Boolean, String, String, String, String, String, String, String)-> Unit
 ) {
 
     LaunchedEffect(Unit) {
@@ -140,7 +140,9 @@ fun DashboardScreen(
                                 duration = currentClass.duration,
                                 section = currentClass.section,
                                 onClick = {
-                                    onClickOpenClassDetails(isTeacher,userName,userId,currentClass.classId)
+                                    onClickOpenClassDetails(isTeacher,userName,userId,currentClass.classId,
+                                                            currentClass.className,currentClass.duration,
+                                                            currentClass.section,currentClass.classCode)
                                 }
                             )
                         }

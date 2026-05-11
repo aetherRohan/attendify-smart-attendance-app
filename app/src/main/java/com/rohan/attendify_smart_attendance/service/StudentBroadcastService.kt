@@ -9,7 +9,6 @@ import android.util.Log
 import com.rohan.attendify_smart_attendance.AttendifyApplication
 import com.rohan.attendify_smart_attendance.data.ble.BleBroadcastClient
 import com.rohan.attendify_smart_attendance.domain.session.StudentSessionController
-import com.rohan.attendify_smart_attendance.repository.StudentSessionRepository
 import com.rohan.attendify_smart_attendance.utils.NotificationHelper
 import kotlinx.coroutines.*
 
@@ -17,7 +16,6 @@ class StudentBroadcastService : Service() {
 
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private var studentSessionController: StudentSessionController?=null
-    private val EXTRA_STUDENT_ID = "STUDENT_ID"
     private  val NOTIFICATION_ID = 101
 
 
@@ -39,7 +37,7 @@ class StudentBroadcastService : Service() {
 
 
         if (bleUuid.isNullOrEmpty()){
-            Log.e("StudentService", "❌ Error: No Student ID provided.")
+            Log.e("StudentService", "❌ Error: No BLE_UUID provided.")
             stopSelf()
             return START_NOT_STICKY
         }

@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class StudentDashboardViewmodel(
+class StudentClassDetailViewModel(
     private val repository: StudentSessionRepository
 ): ViewModel(){
 
@@ -50,9 +50,9 @@ class StudentViewModelFactory(
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(StudentDashboardViewmodel::class.java)) {
+        if (modelClass.isAssignableFrom(StudentClassDetailViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return StudentDashboardViewmodel(repository) as T
+            return StudentClassDetailViewModel(repository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
