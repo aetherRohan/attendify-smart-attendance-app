@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
+import android.util.Log
 import com.rohan.attendify_smart_attendance.AttendifyApplication
 import com.rohan.attendify_smart_attendance.data.ble.BleScanClient
 import com.rohan.attendify_smart_attendance.domain.session.TeacherSessionController
@@ -40,12 +41,13 @@ class TeacherScanService : Service(){
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
-        classId=intent?.getStringExtra("CLASS_ID")
-        // --- CLEANER: Delegate to Helper ---
+        classId=intent?.getStringExtra("EXTRA_CLASS_ID")
+
         startForegroundServicePromotion()
 
         classId?.let {
             teacherSessionController.startSession(it)
+            Log.i("teachService","called start session from teacher controller ")
         }
         return START_STICKY
     }

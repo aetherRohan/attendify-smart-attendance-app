@@ -41,7 +41,7 @@ class TeacherSessionController(
     }
 
     fun startSession(id: String) {
-        classId = "1"
+        classId = id
         if (currentStatus.isRunning || classId.isBlank()) return
 
         Log.i(TAG, "Starting Session: 5-min Windows, One-Hit Threshold")

@@ -13,6 +13,8 @@ import com.rohan.attendify_smart_attendance.MainActivity
 import com.rohan.attendify_smart_attendance.ui.auth.AuthViewModel
 import com.rohan.attendify_smart_attendance.ui.auth.AuthViewModelFactory
 import com.rohan.attendify_smart_attendance.ui.auth.SessionState
+import com.rohan.attendify_smart_attendance.ui.student.StudentDashboardActivity
+import com.rohan.attendify_smart_attendance.ui.teacher.TeacherClassDetailsActivity
 
 class DashBoardActivity : ComponentActivity() {
 
@@ -51,16 +53,28 @@ class DashBoardActivity : ComponentActivity() {
 
             DashboardScreen(
                 userName = name,
-                userRole = role!!,
-                userId = id!!,
+                userRole = role?:"",
+                userId = id?:"",
                 viewModel,
                 onLogout = {
                     authViewModel.logout()
                 },
-                onClickOpenClassDetails = {
-                    //TODO  "open class details tab"
+                onClickOpenClassDetails = {isTeacher,name,userId,classId->
+                    if (isTeacher)
+                        navigateTo(TeacherClassDetailsActivity::class.java,name,userId,classId)
+                    else
+                        navigateTo(StudentDashboardActivity::class.java,name,userId,classId)
                 }
             )
         }
+    }
+
+    private fun navigateTo(activityClass: Class<*>, name: String, userId: String,classId: String) {
+        val intent = Intent(this, activityClass).apply {
+            putExtra("USER_NAME", name)
+            putExtra("EXTRA_CLASS_ID", classId)
+            putExtra("USER_ID", userId)
+        }
+        startActivity(intent)
     }
 }
