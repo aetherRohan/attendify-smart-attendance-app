@@ -1,4 +1,4 @@
-package com.rohan.attendify_smart_attendance.ui.student
+package com.rohan.attendify_smart_attendance.ui.teacher.classDetails
 
 import android.content.Intent
 import android.os.Build
@@ -16,29 +16,27 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import com.rohan.attendify_smart_attendance.AttendifyApplication
-import com.rohan.attendify_smart_attendance.service.StudentBroadcastService
+import com.rohan.attendify_smart_attendance.service.TeacherScanService
+import com.rohan.attendify_smart_attendance.ui.teacher.sessionDetails.TeacherClassSessionDetailsActivity
 import com.rohan.attendify_smart_attendance.ui.theme.AttendifySmartAttendanceTheme
 import com.rohan.attendify_smart_attendance.utils.PermissionManager
-import kotlin.getValue
 
-class StudentClassDetailActivity : ComponentActivity() {
-    private val viewModel: StudentClassDetailViewModel by viewModels() {
+class TeacherClassDetailsActivity : ComponentActivity() {
+    private val viewModel: TeacherClassDetailViewModel by viewModels {
         val app = application as AttendifyApplication
-        StudentViewModelFactory(app.studentRepository)
+        TeacherViewModelFactory(app.teacherRepository)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val name = intent.getStringExtra("USER_NAME") ?: "Student"
-        val userId = intent.getStringExtra("USER_ID") ?: ""
+        val name = intent.getStringExtra("USER_NAME") ?: "Teacher"
+        val role = intent.getStringExtra("USER_ROLE")
+        val id = intent.getStringExtra("USER_ID")
         val classId = intent.getStringExtra("EXTRA_CLASS_ID")
         val className = intent.getStringExtra("CLASS_NAME")
         val duration = intent.getStringExtra("CLASS_DURATION")
         val section = intent.getStringExtra("CLASS_SECTION")
         val classCode = intent.getStringExtra("CLASS_CODE")
-
-        val bleUuid = viewModel.bleUuid.value
-        Log.i("DEBUG_TEST", "fetched ble id from viewmodel :${bleUuid}")
 
         enableEdgeToEdge() // 👈
         setContent {
@@ -49,19 +47,25 @@ class StudentClassDetailActivity : ComponentActivity() {
                         .windowInsetsPadding(WindowInsets.systemBars), // 👈
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    StudentClassDetailScreen(
-                        name = name,
-                        userId = userId,
+                    TeacherClassDetailScreen(
+                        userName = name,
+                        userId = id,
                         classId = classId,
                         className = className,
                         duration = duration,
                         section = section,
                         classCode = classCode,
-                        bleUuid = bleUuid,
                         viewModel = viewModel,
-                        onStartBroadcastClick = { isBroadcasting, bleUuid ->
-                            if (bleUuid != null) handleToggle(isBroadcasting, bleUuid)
-                            else Log.e("studentActivity", "Ble uuid is Null")
+                        onStartScanClick = { isCurrentlyScanning, classId ->
+                            Log.i("teachService", "button clicked start/stop")
+                            handleToggle(isCurrentlyScanning, classId = classId)
+                        },
+                        onClassSessionCardCLick = { sessionId, date, classId, className, section ->
+                            navigateTo(
+                                TeacherClassSessionDetailsActivity::class.java,
+                                section = section, classId = classId, className = className,
+                                classSessionId = sessionId, classSessionDate = date
+                            )
                         },
                         onBackClick = { finish() }
                     )
@@ -70,36 +74,46 @@ class StudentClassDetailActivity : ComponentActivity() {
         }
     }
 
-    private fun handleToggle(isBroadcasting: Boolean, bleUuid: String?) {
-        Log.e("DEBUG_TEST", " Activity handleToggle reached")
-        Log.e("DEBUG_TEST", " ble id in handle toggle function:${bleUuid}")
+    private fun navigateTo(
+        activityClass: Class<*>,
+        section: String, classId: String, className: String,
+        classSessionId: String, classSessionDate: String,
+    ) {
+        val intent = Intent(this, activityClass).apply {
+            putExtra("CLASS_NAME", className)
+            putExtra("CLASS_SECTION", section)
+            putExtra("CLASS_ID", classId)
+            putExtra("CLASS_SESSION_ID", classSessionId)
+            putExtra("CLASS_SESSION_DATE", classSessionDate)
+        }
+        startActivity(intent)
+    }
 
+    private fun handleToggle(isScanning: Boolean, classId: String) {
         try {
             if (!PermissionManager.hasBluetoothPermissions(this)) {
-                Log.e("DEBUG_TEST", "3. Permissions Missing - Requesting and Returning")
                 PermissionManager.requestBluetoothPermissions(this, 101)
                 return
             }
-            if (bleUuid == null) {
-                Log.e("DEBUG_TEST", "No ble id found in the handle toggle function")
+            val intent = Intent(this, TeacherScanService::class.java).apply {
+                putExtra("EXTRA_CLASS_ID", classId)
             }
-            val intent = Intent(this, StudentBroadcastService::class.java).apply {
-                putExtra("USER_BLE_UUID", bleUuid)
-            }
-            if (isBroadcasting) {
+            if (isScanning) {
+                Log.i("teachService", "starting foreground service")
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    Log.e("DEBUG_TEST", "4. Permissions OK - Starting Service")
+                    Log.i("teachService", "starting teach service class intent 1")
                     startForegroundService(intent)
                 } else {
-                    Log.e("DEBUG_TEST", "4. Permissions OK - Starting Service")
+                    Log.i("teachService", "starting teach service class intent 2")
                     startService(intent)
                 }
             } else {
+                Log.i("teachService", "stopping scan service")
                 stopService(intent)
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            Log.e("DEBUG_TEST", "${e.message}")
+            Log.e("teachService", "${e.message}")
         }
     }
 }

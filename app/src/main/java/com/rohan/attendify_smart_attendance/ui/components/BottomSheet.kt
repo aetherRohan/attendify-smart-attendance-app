@@ -1,4 +1,5 @@
 package com.rohan.attendify_smart_attendance.ui.components
+
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -30,7 +31,6 @@ fun ScanBottomSheet(
 ) {
     val context = LocalContext.current
 
-
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true,
         confirmValueChange = { newState ->
@@ -50,14 +50,15 @@ fun ScanBottomSheet(
         BackHandler(enabled = true) {
             Toast.makeText(
                 context,
-                "Press the  red button to end the session.",
+                "Press the red button to end the session.",
                 Toast.LENGTH_SHORT
             ).show()
         }
+
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(0.95f) // Take up 85% of the screen
+                .fillMaxHeight(0.95f)
                 .padding(horizontal = 24.dp)
         ) {
             // Header
@@ -67,8 +68,16 @@ fun ScanBottomSheet(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column {
-                    Text("Taking Attendance", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-                    Text("Scanning via Bluetooth...", color = AttendifyBlue, style = MaterialTheme.typography.bodyMedium)
+                    Text(
+                        "Taking Attendance",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        "Scanning via Bluetooth...",
+                        color = AttendifyBlue,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                 }
 
                 // Stop Button
@@ -111,11 +120,15 @@ fun ScanBottomSheet(
                             .padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.CheckCircle, contentDescription = null, tint = AttendifyGreen)
+                        Icon(
+                            Icons.Default.CheckCircle,
+                            contentDescription = null,
+                            tint = AttendifyGreen
+                        )
                         Spacer(modifier = Modifier.width(16.dp))
                         Column {
                             Text(student, fontWeight = FontWeight.Bold)
-//                            Text(student.rollNumber, color = Color.Gray, style = MaterialTheme.typography.bodySmall)
+                            // Text(student.rollNumber, color = Color.Gray, style = MaterialTheme.typography.bodySmall)
                         }
                     }
                 }
@@ -124,17 +137,17 @@ fun ScanBottomSheet(
     }
 }
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActiveBroadcastBottomSheet(
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
+
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true,
         confirmValueChange = { newState ->
-            newState != SheetValue.Hidden // Prevent external taps and downward swipes
+            newState != SheetValue.Hidden
         }
     )
 
@@ -142,7 +155,7 @@ fun ActiveBroadcastBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         properties = ModalBottomSheetProperties(
-            shouldDismissOnBackPress = false // Release back-press to the internal BackHandler
+            shouldDismissOnBackPress = false
         ),
         containerColor = Color.White,
         dragHandle = { BottomSheetDefaults.DragHandle() }
@@ -170,8 +183,16 @@ fun ActiveBroadcastBottomSheet(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column {
-                    Text("Marking Attendance", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-                    Text("Broadcasting signal...", color = AttendifyGreen, style = MaterialTheme.typography.bodyMedium)
+                    Text(
+                        "Marking Attendance",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        "Broadcasting signal...",
+                        color = AttendifyGreen,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                 }
 
                 // Stop Button

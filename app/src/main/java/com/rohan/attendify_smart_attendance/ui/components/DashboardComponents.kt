@@ -5,14 +5,23 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Assessment
+import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.HelpOutline
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.rohan.attendify_smart_attendance.ui.theme.AttendifyBlue
 import com.rohan.attendify_smart_attendance.ui.theme.AttendifyPurple
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -39,7 +48,7 @@ fun AttendifyTopBar(
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.background // 👈 changed from Color.White
         )
     )
 }
@@ -57,7 +66,6 @@ fun DynamicFab(
         shape = CircleShape
     ) {
         if (isTeacher) {
-
             Icon(Icons.Default.Add, contentDescription = "Create Class")
         } else {
             Text("Join Class", modifier = Modifier.padding(horizontal = 16.dp), fontWeight = FontWeight.Bold)
@@ -72,56 +80,122 @@ fun DrawerContent(
     roleColor: Color,
     onLogoutClick: () -> Unit
 ) {
+    val configuration = LocalConfiguration.current
+    val drawerWidth = configuration.screenWidthDp.dp * 0.75f
+
     ModalDrawerSheet(
-        drawerContainerColor = Color.White
+        modifier = Modifier.width(drawerWidth),
+        drawerContainerColor = MaterialTheme.colorScheme.surface // 👈 changed from Color.White
     ) {
-        Column(modifier = Modifier.padding(24.dp)) {
-            // Header
+        Column(modifier = Modifier.fillMaxHeight()) {
             Box(
                 modifier = Modifier
-                    .size(64.dp)
-                    .background(roleColor.copy(alpha = 0.2f), CircleShape),
-                contentAlignment = Alignment.Center
+                    .fillMaxWidth()
+                    .background(
+                        brush = Brush.linearGradient(
+                            colors = listOf(AttendifyPurple, AttendifyBlue)
+                        )
+                    )
+                    .padding(24.dp)
             ) {
-                Text(
-                    text = userName.take(1).uppercase(),
-                    color = roleColor,
-                    style = MaterialTheme.typography.headlineMedium
-                )
+                Column {
+                    Box(
+                        modifier = Modifier
+                            .size(64.dp)
+                            .background(Color.White, CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = userName.take(1).uppercase(),
+                            color = AttendifyPurple,
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = userName,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
             }
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(text = userName, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-            Text(text = userRole, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
 
-            Spacer(modifier = Modifier.height(32.dp))
-            HorizontalDivider()
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Navigation Items
-            NavigationDrawerItem(
-                label = { Text("All Classes", fontWeight = FontWeight.Bold) },
-                selected = true,
-                onClick = { /* Handle click */ },
-                colors = NavigationDrawerItemDefaults.colors(
-                    selectedContainerColor = roleColor.copy(alpha = 0.1f),
-                    selectedTextColor = roleColor
-                )
-            )
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            // Logout Button
-            TextButton(
-                onClick = onLogoutClick,
-                colors = ButtonDefaults.textButtonColors(contentColor = Color.Red)
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp, vertical = 24.dp)
+                    .fillMaxHeight()
             ) {
-                Text("Log Out")
+                NavigationDrawerItem(
+                    icon = { Icon(Icons.Default.Home, contentDescription = "All Classes") },
+                    label = { Text("All Classes", fontWeight = FontWeight.Bold) },
+                    selected = true,
+                    onClick = { },
+                    colors = NavigationDrawerItemDefaults.colors(
+                        selectedContainerColor = roleColor.copy(alpha = 0.1f),
+                        selectedTextColor = roleColor,
+                        selectedIconColor = roleColor
+                    )
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                NavigationDrawerItem(
+                    icon = { Icon(Icons.Default.Assessment, contentDescription = "Reports") },
+                    label = { Text("Attendance Reports", fontWeight = FontWeight.SemiBold) },
+                    selected = false,
+                    onClick = { },
+                    colors = NavigationDrawerItemDefaults.colors(
+                        unselectedIconColor = Color.Gray,
+                        unselectedTextColor = Color.DarkGray
+                    )
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                NavigationDrawerItem(
+                    icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
+                    label = { Text("My Profile", fontWeight = FontWeight.SemiBold) },
+                    selected = false,
+                    onClick = { },
+                    colors = NavigationDrawerItemDefaults.colors(
+                        unselectedIconColor = Color.Gray,
+                        unselectedTextColor = Color.DarkGray
+                    )
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                NavigationDrawerItem(
+                    icon = { Icon(Icons.Default.Settings, contentDescription = "Settings") },
+                    label = { Text("Settings", fontWeight = FontWeight.SemiBold) },
+                    selected = false,
+                    onClick = { },
+                    colors = NavigationDrawerItemDefaults.colors(
+                        unselectedIconColor = Color.Gray,
+                        unselectedTextColor = Color.DarkGray
+                    )
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                NavigationDrawerItem(
+                    icon = { Icon(Icons.Default.HelpOutline, contentDescription = "Help") },
+                    label = { Text("Help & Support", fontWeight = FontWeight.SemiBold) },
+                    selected = false,
+                    onClick = { },
+                    colors = NavigationDrawerItemDefaults.colors(
+                        unselectedIconColor = Color.Gray,
+                        unselectedTextColor = Color.DarkGray
+                    )
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                HorizontalDivider()
+                Spacer(modifier = Modifier.height(16.dp))
+                NavigationDrawerItem(
+                    icon = { Icon(Icons.Default.ExitToApp, contentDescription = "Log Out") },
+                    label = { Text("Log Out", fontWeight = FontWeight.Bold) },
+                    selected = false,
+                    onClick = onLogoutClick,
+                    colors = NavigationDrawerItemDefaults.colors(
+                        unselectedIconColor = Color.Red.copy(alpha = 0.8f),
+                        unselectedTextColor = Color.Red.copy(alpha = 0.8f)
+                    )
+                )
             }
         }
     }
-
-
-
-
-
 }

@@ -1,7 +1,9 @@
 package com.rohan.attendify_smart_attendance.api
 
+import com.rohan.attendify_smart_attendance.dto.AttendanceDto
 import retrofit2.http.Query
 import com.rohan.attendify_smart_attendance.dto.ClassDto
+import com.rohan.attendify_smart_attendance.dto.ClassSessionDto
 import com.rohan.attendify_smart_attendance.dto.CreateClassRequest
 import com.rohan.attendify_smart_attendance.dto.LoginRequest
 import com.rohan.attendify_smart_attendance.dto.LoginResponse
@@ -26,20 +28,39 @@ interface ApiService {
     suspend fun registerStudent(@Body request: SignupRequest): Response<LoginResponse>
 
     @GET("/api/teacher/class/{classId}/students")
-    suspend fun getClassRoster(@Path("classId") classId: String): Response<List<StudentRosterDto>>
-
+    suspend fun getClassRoster(
+        @Path("classId") classId: String): Response<List<StudentRosterDto>>
 
     @POST("/api/teacher/session/sync")
-    suspend fun uploadOfflineSessions(@Body syncRequest: List<SessionSyncRequest>): Response<Unit>
+    suspend fun uploadOfflineSessions(
+        @Body syncRequest: List<SessionSyncRequest>): Response<Unit>
+
+
 
     @GET("/api/teacher/class/getClasses")
     suspend fun getAllClassesForTeacher(): Response<List<ClassDto>>
 
+
+    @GET("/api/teacher/class/classSession")
+    suspend fun getAllClassSessionForTeacher(
+        @Query("classId") classId: String): Response<List<ClassSessionDto>>
+
+
+    @GET("api/teacher/classSession/getAllAttendances")
+    suspend fun getAllAttendancesForTeacher(
+        @Query("classSessionId")
+        classId: String): Response<List<AttendanceDto>>
+
+
+
     @GET("/api/student/class/getClasses")
     suspend fun getAllClassesForStudent(): Response<List<ClassDto>>
 
+
     @POST("/api/student/class/joinClass")
-    suspend fun joinClass(@Query("classCode") classCode: String): Response<ClassDto>
+    suspend fun joinClass(
+        @Query("classCode") classCode: String): Response<ClassDto>
+
 
     @POST("/api/teacher/class/createClass")
     suspend fun createClass(@Body classDto: CreateClassRequest): Response<ClassDto>

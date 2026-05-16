@@ -1,4 +1,4 @@
-package com.rohan.attendify_smart_attendance.ui.teacher
+package com.rohan.attendify_smart_attendance.ui.teacher.classDetails
 
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
@@ -22,14 +22,11 @@ import com.rohan.attendify_smart_attendance.ui.components.debounced
 import com.rohan.attendify_smart_attendance.ui.theme.*
 
 
-// --- Temporary Mock Data
-data class MockSession(val id: String, val serialNumber: Int, val date: String, val presentCount: Int)
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TeacherClassDetailScreen(
-    name: String?,
+    userName: String?,
     userId: String?,
     classId: String?,
     className: String?,
@@ -38,7 +35,7 @@ fun TeacherClassDetailScreen(
     classCode: String?,
     viewModel: TeacherClassDetailViewModel,
     onStartScanClick: (Boolean, String) -> Unit,
-    onClassSessionCardCLick: () -> Unit,
+    onClassSessionCardCLick: (String, String, String, String, String) -> Unit,
     onBackClick: () -> Unit = {} // Added for top bar navigation
 ) {
     // State for the Bottom Sheet
@@ -46,19 +43,12 @@ fun TeacherClassDetailScreen(
 
     val state by viewModel.uiState.collectAsState()
 
+    val classSessionList by viewModel.classSessionState.collectAsState()
 
-    // Mock Data for UI Preview (Replace with viewModel.pastSessions.collectAsState() etc.)
-    val pastSessions = listOf(
-        MockSession("1", 8, "Oct 26, 2024 • 10:00 AM", 42),
-        MockSession("2", 7, "Oct 24, 2024 • 10:00 AM", 45),
-        MockSession("3", 6, "Oct 22, 2024 • 10:00 AM", 44),
-        MockSession("4", 5, "Oct 22, 2024 • 10:00 AM", 44),
-        MockSession("5", 4, "Oct 22, 2024 • 10:00 AM", 44),
-        MockSession("6", 3, "Oct 22, 2024 • 10:00 AM", 44),
-        MockSession("7", 2, "Oct 22, 2024 • 10:00 AM", 44),
-        MockSession("8", 1, "Oct 22, 2024 • 10:00 AM", 44)
-    )
 
+    LaunchedEffect(Unit) {
+        viewModel.syncDashboardData()
+    }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -129,12 +119,15 @@ fun TeacherClassDetailScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 contentPadding = PaddingValues(bottom = 24.dp)
             ) {
-                items(pastSessions, key = { it.id }) { session ->
+                items(classSessionList, key = { it.classSessionId }) { currentSession ->
                     TeacherClassSessionCard(
-                        serialNumber = session.serialNumber,
-                        date = session.date,
-                        presentCount = session.presentCount,
-                        onClick = onClassSessionCardCLick
+                        date = currentSession.date,
+                        onClick = {
+                            onClassSessionCardCLick(
+                                currentSession.classSessionId,
+                                currentSession.date, currentSession.classId, className?:"",section?:""
+                            )
+                        }
                     )
                 }
             }

@@ -50,7 +50,7 @@ class DashBoardViewModel(
             try {
                 if (isTeacher) {
 
-                   teacherRepo.syncAllTeacherData()
+                   teacherRepo.syncAllClasses()
                 } else {
                      studentRepo.syncAllStudentClass()
                 }

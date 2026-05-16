@@ -22,9 +22,7 @@ import com.rohan.attendify_smart_attendance.ui.theme.*
 
 @Composable
     fun TeacherClassSessionCard(
-        serialNumber: Int,
         date: String,
-        presentCount: Int,
         onClick: () -> Unit
     ) {
         Card(
@@ -41,21 +39,6 @@ import com.rohan.attendify_smart_attendance.ui.theme.*
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Serial Number Bubble on the Left
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(CircleShape)
-                        .background(AttendifyBlue.copy(alpha = 0.1f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "#$serialNumber",
-                        color = AttendifyBlue,
-                        fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                }
 
                 Spacer(modifier = Modifier.width(16.dp))
 
@@ -67,11 +50,7 @@ import com.rohan.attendify_smart_attendance.ui.theme.*
                         fontWeight = FontWeight.SemiBold,
                         color = Color.Black
                     )
-                    Text(
-                        text = "$presentCount Students Present",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Gray
-                    )
+
                 }
 
                 Icon(

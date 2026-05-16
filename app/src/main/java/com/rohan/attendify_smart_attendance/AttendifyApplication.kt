@@ -22,6 +22,8 @@ class AttendifyApplication : Application() {
             database = database,
             rosterDao = database.studentRosterDao(),
             classDao = database.classDao(),
+            classSessionDao = database.classSessionDao(),
+            attendanceDao = database.attendanceDao(),
             pendingSessionDao = database.pendingSessionDao()
         )
     }

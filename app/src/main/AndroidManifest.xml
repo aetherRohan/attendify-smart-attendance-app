@@ -45,7 +45,10 @@
         <activity android:name=".ui.root.DashBoardActivity"
             android:exported="false"/>
 
-        <activity android:name=".ui.teacher.TeacherClassDetailsActivity"
+        <activity android:name=".ui.teacher.classDetails.TeacherClassDetailsActivity"
+            android:exported="true"/>
+
+        <activity android:name=".ui.teacher.sessionDetails.TeacherClassSessionDetailsActivity"
             android:exported="true"/>
 
         <activity android:name=".ui.student.StudentClassDetailActivity"

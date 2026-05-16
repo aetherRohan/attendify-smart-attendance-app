@@ -5,10 +5,14 @@ import android.util.Log
 import androidx.room.withTransaction
 import com.rohan.attendify_smart_attendance.api.ApiService
 import com.rohan.attendify_smart_attendance.data.local.AttendifyDatabase
+import com.rohan.attendify_smart_attendance.data.local.dao.AttendanceDao
 import com.rohan.attendify_smart_attendance.data.local.dao.ClassDao
+import com.rohan.attendify_smart_attendance.data.local.dao.ClassSessionDao
 import com.rohan.attendify_smart_attendance.data.local.dao.PendingSessionDao
 import com.rohan.attendify_smart_attendance.data.local.dao.StudentRosterDao
+import com.rohan.attendify_smart_attendance.data.local.entity.AttendanceEntity
 import com.rohan.attendify_smart_attendance.data.local.entity.ClassEntity
+import com.rohan.attendify_smart_attendance.data.local.entity.ClassSessionEntity
 import com.rohan.attendify_smart_attendance.data.local.entity.PendingSessionEntity
 import com.rohan.attendify_smart_attendance.data.local.entity.StudentRosterEntity
 import com.rohan.attendify_smart_attendance.domain.session.TeacherSessionController
@@ -32,6 +36,8 @@ class TeacherSessionRepository(
     private val database: AttendifyDatabase,
     private val rosterDao: StudentRosterDao,
     private val classDao: ClassDao,
+    private val classSessionDao: ClassSessionDao,
+    private val attendanceDao: AttendanceDao,
     private val pendingSessionDao: PendingSessionDao
 ) {
     private val _sessionStatus = MutableStateFlow(TeacherSessionController.SessionStatus())
@@ -45,26 +51,6 @@ class TeacherSessionRepository(
         _sessionStatus.value = newStatus
     }
 
-
-    suspend fun fetchAndSaveRoster(classId: String) {
-        try {
-
-            val response = api.getClassRoster(classId)
-
-            if (response.isSuccessful && response.body() != null) {
-
-                val roomEntities = response.body()!!.map { it.toRoomEntity() }
-
-                rosterDao.insertRoster(roomEntities)
-                Log.i("session","StudentRoster fetched from server and saved to db")
-            } else {
-                Log.e("session", "Could not fetch the studentRoster error code:${response.code()}")
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            Log.e("session", "${e.message}")
-        }
-    }
 
 
     suspend fun getStudentsForClass(classId: String): List<StudentRosterEntity> {
@@ -85,6 +71,31 @@ class TeacherSessionRepository(
             }
             .catch { e ->
                 Log.e("TeacherRepo", "Database read error: ${e.message}", e)
+                // Emit an empty list to prevent the UI from crashing if the DB fails
+                emit(emptyList())
+            }
+    }
+
+    fun getLocalClassSessionFlow(classId: String): Flow<List<ClassSessionEntity>> {
+        return classSessionDao.getAllClassSessions(classId)
+            .onStart {
+                Log.i("classSession", "Started observing local  DB for class sessions ")
+            }
+            .catch { e ->
+                Log.e("classSession", "Database read error: ${e.message}", e)
+                // Emit an empty list to prevent the UI from crashing if the DB fails
+                emit(emptyList())
+            }
+    }
+
+
+    fun getLocalAttendanceFlow(classSessionId: String): Flow<List<AttendanceEntity>> {
+        return attendanceDao.getAllAttendances(classSessionId)
+            .onStart {
+                Log.i("classSession", "Started observing local  DB for class sessions ")
+            }
+            .catch { e ->
+                Log.e("classSession", "Database read error: ${e.message}", e)
                 // Emit an empty list to prevent the UI from crashing if the DB fails
                 emit(emptyList())
             }
@@ -121,7 +132,7 @@ class TeacherSessionRepository(
    }
 
 
-    suspend fun syncAllTeacherData() {
+    suspend fun syncAllClasses() {
         coroutineScope {
             try {
                 Log.i("TeacherRepo", "Starting Eager Sync for Teacher")
@@ -175,6 +186,75 @@ class TeacherSessionRepository(
         }
     }
 
+
+    suspend fun syncAllClassSessions(classId: String) {
+        coroutineScope {
+            try {
+                Log.i("classSession", "Starting Eager Sync for class-sessions")
+
+                val classSessionResponse = api.getAllClassSessionForTeacher(classId)
+
+                if (classSessionResponse.isSuccessful && classSessionResponse.body() != null) {
+                    val classSessionDtos = classSessionResponse.body()!!
+
+                    // 2. Fetch all attendance  concurrently
+                    val attendanceJobs = classSessionDtos.map { classSessionDto ->
+                        async {
+                            Log.i(
+                                "classSession",
+                                "trying to fetch attendance for ${classSessionDto.classSessionId}"
+                            )
+                            val attendanceResponse =
+                                api.getAllAttendancesForTeacher(classSessionDto.classSessionId)
+                            if (attendanceResponse.isSuccessful) {
+                                attendanceResponse.body()?.map { attendanceDto ->
+
+                                    attendanceDto.toRoomEntity()
+                                } ?: emptyList()
+                            } else {
+                                Log.e(
+                                    "classSession",
+                                    "Failed to fetch attendance for class session id: ${classSessionDto.classSessionId}"
+                                )
+                                emptyList()
+                            }
+                        }
+                    }
+                    // Wait for all attendance network calls to finish
+                    val allAttendances = attendanceJobs.awaitAll().flatten()
+
+                    val classSessionEntities = classSessionDtos.map { dto ->
+                        dto.toRoomEntity()
+                    }
+
+                    //  Save everything atomically to Room to prevent data loss
+                    database.withTransaction {
+                        classSessionDao.clearAllClassSessions()
+                        attendanceDao.clearAllAttendances()
+
+                        classSessionDao.insertClassSession(classSessionEntities)
+                        attendanceDao.insertAttendance(allAttendances)
+                    }
+
+                    Log.i(
+                        "classSession",
+                        "Successfully synced ${classSessionEntities.size} sessions and ${allAttendances.size} attendances."
+                    )
+                } else {
+                    Log.e("classSession", "Server returned error: ${classSessionResponse.code()}")
+                }
+            } catch (e: Exception) {
+                // If there's no internet, this catch block catches the Retrofit exception.
+                //the UI just keeps displaying the old Room data!
+                Log.e("classSession", "Network Sync Failed. Working offline. Error: ${e.message}")
+            }
+        }
+    }
+
+
+
+
+
     suspend fun recordCurrentWindowAttendance(
         classId: String,
         windowIndex: Int,
@@ -182,14 +262,14 @@ class TeacherSessionRepository(
     ) {
         withContext(Dispatchers.IO) {
             try {
-                // 2. Date is safely generated here, so we don't need it in the parameters!
-                val todayDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                // Format: MMM d, yyyy • hh:mm a
+                val todayDate = SimpleDateFormat("MMM d, yyyy • hh:mm a", Locale.getDefault()).format(Date())
 
                 // Query local Room DB
                 val existingSession = pendingSessionDao.getSessionForToday(classId, todayDate)
 
                 if (existingSession == null) {
-                    // SCENARIO 1: First scan of the day. Initialize map with 1 hit per student.
+                    //  First scan  Initialize map with 1 hit per student.
                     val initialHits = scannedStudents.associateWith { 1 }
 
                     val newSession = PendingSessionEntity(
@@ -206,7 +286,6 @@ class TeacherSessionRepository(
                     )
 
                 } else {
-                    // SCENARIO 2: Session exists. Safely increment the hit counts.
                     val updatedHits = existingSession.studentHitsMap.toMutableMap()
 
                     for (studentId in scannedStudents) {

@@ -8,7 +8,7 @@ data class ClassEntity(
     @PrimaryKey
     val classId: String,
     val className: String,
-    val classCode:String,
+    val classCode: String,
     val section: String,
     val duration: String,
 )

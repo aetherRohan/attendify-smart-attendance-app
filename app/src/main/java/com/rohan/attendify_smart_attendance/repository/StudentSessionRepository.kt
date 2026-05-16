@@ -69,7 +69,7 @@ class StudentSessionRepository(
                         classDao.insertClasses(classEntities)
                     }
 
-                    Log.i("StudentRepo", "Successfully synced ${classEntities.size} classes ")
+                    Log.i("StudentRepo", "Successfully synced ${classEntities.size} classes")
                 } else {
                     Log.e("StudentRepo", "Server returned error: ${classResponse.code()}")
                 }

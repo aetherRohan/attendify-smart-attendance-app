@@ -23,6 +23,7 @@ fun DashboardScreen(
     onClickOpenClassDetails:(Boolean, String, String, String, String, String, String, String)-> Unit
 ) {
 
+
     LaunchedEffect(Unit) {
         viewModel.syncDashboardData()
     }

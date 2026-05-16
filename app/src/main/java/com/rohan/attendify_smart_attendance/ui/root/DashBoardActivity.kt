@@ -4,10 +4,18 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import com.rohan.attendify_smart_attendance.AttendifyApplication
 import com.rohan.attendify_smart_attendance.MainActivity
 import com.rohan.attendify_smart_attendance.ui.auth.AuthViewModel
@@ -15,7 +23,8 @@ import com.rohan.attendify_smart_attendance.ui.auth.AuthViewModelFactory
 import com.rohan.attendify_smart_attendance.ui.auth.SessionState
 import com.rohan.attendify_smart_attendance.ui.student.StudentClassDetailActivity
 
-import com.rohan.attendify_smart_attendance.ui.teacher.TeacherClassDetailsActivity
+import com.rohan.attendify_smart_attendance.ui.teacher.classDetails.TeacherClassDetailsActivity
+import com.rohan.attendify_smart_attendance.ui.theme.AttendifySmartAttendanceTheme
 
 class DashBoardActivity : ComponentActivity() {
 
@@ -37,38 +46,66 @@ class DashBoardActivity : ComponentActivity() {
         val id = intent.getStringExtra("USER_ID")
 
         super.onCreate(savedInstanceState)
-
+        enableEdgeToEdge()
         setContent {
-            val sessionState by authViewModel.sessionState.collectAsState()
 
-            LaunchedEffect(sessionState) {
-                if (sessionState is SessionState.Unauthenticated) {
+            AttendifySmartAttendanceTheme {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .windowInsetsPadding(WindowInsets.systemBars),
+                    color = MaterialTheme.colorScheme.background
+                ) {
 
-                    val intent = Intent(this@DashBoardActivity, MainActivity::class.java).apply {
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    val sessionState by authViewModel.sessionState.collectAsState()
+
+                    LaunchedEffect(sessionState) {
+                        if (sessionState is SessionState.Unauthenticated) {
+                            val intent =
+                                Intent(this@DashBoardActivity, MainActivity::class.java).apply {
+                                    flags =
+                                        Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                }
+                            startActivity(intent)
+                            finish()
+                        }
                     }
-                    startActivity(intent)
-                    finish() // Destroy the Dashboard
+
+                    DashboardScreen(
+                        userName = name,
+                        userRole = role ?: "",
+                        userId = id ?: "",
+                        viewModel,
+                        onLogout = {
+                            authViewModel.logout()
+                        },
+                        onClickOpenClassDetails = { isTeacher, name, userId, classId, className, duration, section, classCode ->
+                            if (isTeacher)
+                                navigateTo(
+                                    TeacherClassDetailsActivity::class.java,
+                                    name,
+                                    userId,
+                                    classId,
+                                    className,
+                                    duration,
+                                    section,
+                                    classCode
+                                )
+                            else
+                                navigateTo(
+                                    StudentClassDetailActivity::class.java,
+                                    name,
+                                    userId,
+                                    classId,
+                                    className,
+                                    duration,
+                                    section,
+                                    classCode
+                                )
+                        }
+                    )
                 }
             }
-
-            DashboardScreen(
-                userName = name,
-                userRole = role?:"",
-                userId = id?:"",
-                viewModel,
-                onLogout = {
-                    authViewModel.logout()
-                },
-                onClickOpenClassDetails = {isTeacher,name,userId,classId,className,duration,section,classCode->
-                    if (isTeacher)
-                        navigateTo(TeacherClassDetailsActivity::class.java,name,userId,
-                                     classId,className,duration,section,classCode)
-                    else
-                        navigateTo(StudentClassDetailActivity::class.java,name,userId,
-                                     classId,className,duration,section,classCode)
-                }
-            )
         }
     }
 

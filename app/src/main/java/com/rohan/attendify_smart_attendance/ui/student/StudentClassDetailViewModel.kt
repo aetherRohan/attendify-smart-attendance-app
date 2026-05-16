@@ -16,8 +16,8 @@ class StudentClassDetailViewModel(
 ): ViewModel(){
 
     private var _bleUuid= MutableStateFlow("")
-
     val bleUuid: StateFlow<String> = _bleUuid
+
 
     init {
         viewModelScope.launch {
