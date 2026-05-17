@@ -72,7 +72,6 @@ class BleScanClient(
 
                         Log.d("BleClient", "✅ Found Student UUID: $studentUuid (RSSI: ${result.rssi})")
 
-                        // 4. Emit to Flow (Use the string version for easy HashSet comparison)
                         _scanResults.tryEmit(studentUuid)
 
                     } catch (e: Exception) {

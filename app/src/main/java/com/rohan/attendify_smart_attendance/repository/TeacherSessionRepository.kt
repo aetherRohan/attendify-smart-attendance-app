@@ -262,7 +262,7 @@ class TeacherSessionRepository(
         withContext(Dispatchers.IO) {
             try {
                 // Format: MMM d, yyyy • hh:mm a
-                val todayDate = SimpleDateFormat("MMM d, yyyy • hh:mm a", Locale.getDefault()).format(Date())
+                val todayDate = SimpleDateFormat("MMM d, yyyy • hh:00 a", Locale.getDefault()).format(Date())
 
                 // Query local Room DB
                 val existingSession = pendingSessionDao.getSessionForToday(classId, todayDate)

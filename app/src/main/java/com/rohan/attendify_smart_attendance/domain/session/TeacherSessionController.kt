@@ -58,6 +58,15 @@ class TeacherSessionController(
         )
         updateState()
 
+        //auto stop
+        sessionScope.launch {
+            delay(MAX_SESSION_DURATION)
+            if (currentStatus.isRunning) {
+                Log.i(TAG, "Max session duration reached. Auto-stopping session.")
+                stopSession()
+            }
+        }
+
         sessionScope.launch {
 
             val studentList = teacherRepository.getStudentsForClass(classId)
@@ -105,18 +114,19 @@ class TeacherSessionController(
 
 
     private suspend fun runOneMicroCycle() {
-        // --- PHASE 1: SCAN & COLLECT ---
-        val collectionJob = bleClient.scanResults.onEach { studentId ->
+        // ---  SCAN & COLLECT ---
+        val collectionJob = bleClient.scanResults.onEach { studentBleUuId ->
             dataMutex.withLock {
                 // If student is in the class and  If new for this 5-min window, add them.
-                val studentName = studentsInClass[studentId]
+                val studentName = studentsInClass[studentBleUuId]
 
-                if (studentName != null && !studentIdNameInCurrentWindow.contains(studentId)) {
+                if ( studentName !=null && !studentIdNameInCurrentWindow.contains(studentBleUuId)) {
 
-                    studentIdNameInCurrentWindow.put(studentId, studentName)
+                    studentIdNameInCurrentWindow.put(studentBleUuId, studentName)
                     studentsNamesInCurrentWindow.add(studentName)
-                    studentsIdsInCurrentWindow.add(studentId)
+                    studentsIdsInCurrentWindow.add(studentBleUuId)
 
+                    Log.i(TAG,"${studentName} id:${studentBleUuId} added to currentWindow")
 
                     currentStatus = currentStatus.copy(
                         studentsFoundCount = studentsNamesInCurrentWindow.size,
@@ -124,7 +134,7 @@ class TeacherSessionController(
                     )
                     updateState()
 
-                    Log.e("StudentId", studentId)
+                    Log.e("StudentId", studentBleUuId)
                 }
             }
         }.launchIn(sessionScope)
@@ -201,12 +211,17 @@ class TeacherSessionController(
     }
 
 
+
+
+
     companion object {
         private const val TAG = "SessionController"
         private const val SCAN_DURATION = 30_000L
         private const val REST_DURATION = 30_000L
-        private const val CYCLES_PER_WINDOW = 1
+        private const val MAX_SESSION_DURATION = 59 * 60 * 1000L
+        private const val CYCLES_PER_WINDOW = 5
     }
+
     data class SessionStatus(
         val isRunning: Boolean = false,
         val studentsFoundCount: Int = 0,
