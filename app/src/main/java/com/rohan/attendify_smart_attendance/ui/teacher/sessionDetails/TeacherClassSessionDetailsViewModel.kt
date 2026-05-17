@@ -49,7 +49,7 @@ class TeacherClassSessionDetailsViewModel(
         private val repository: TeacherSessionRepository
     ) : ViewModelProvider.Factory {
 
-        // Override the correct create method that includes CreationExtras
+
         override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
             if (modelClass.isAssignableFrom(TeacherClassSessionDetailsViewModel::class.java)) {
 

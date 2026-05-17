@@ -7,8 +7,10 @@ import androidx.room.Entity
     primaryKeys = ["classSessionId","studentId"]
 )
 data class AttendanceEntity(
+    val classId: String,
     val classSessionId: String,
     val studentId: String,
+    val date: String,
     val isPresent: Boolean,
     val studentName: String,
     val rollNumber: String,

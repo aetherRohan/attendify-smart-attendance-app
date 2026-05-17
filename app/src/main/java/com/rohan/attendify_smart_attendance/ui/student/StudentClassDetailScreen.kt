@@ -20,8 +20,6 @@ import com.rohan.attendify_smart_attendance.ui.components.StudentSessionCard
 import com.rohan.attendify_smart_attendance.ui.components.debounced
 import com.rohan.attendify_smart_attendance.ui.theme.*
 
-data class StudentSessionRecord(val id: String, val date: String, val isPresent: Boolean)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StudentClassDetailScreen(
@@ -39,12 +37,13 @@ fun StudentClassDetailScreen(
 ) {
     var showBroadcastingSheet by remember { mutableStateOf(false) }
 
-    // Mock Data for UI Preview (Replace with viewModel state collection)
-    val pastSessions = listOf(
-        StudentSessionRecord("3", "Oct 26, 2024 • 10:00 AM", true),
-        StudentSessionRecord("2", "Oct 24, 2024 • 10:00 AM", false),
-        StudentSessionRecord("1", "Oct 22, 2024 • 10:00 AM", true)
-    )
+    val attendanceList by viewModel.attendanceListState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.syncDashBoard()
+    }
+
+
 
     Scaffold(
         topBar = {
@@ -124,7 +123,10 @@ fun StudentClassDetailScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 contentPadding = PaddingValues(bottom = 24.dp)
             ) {
-                items(pastSessions, key = { it.id }) { session ->
+                items(
+                    items = attendanceList,
+                    key = { it.classSessionId }
+                ) { session ->
                     StudentSessionCard(
                         date = session.date,
                         isPresent = session.isPresent

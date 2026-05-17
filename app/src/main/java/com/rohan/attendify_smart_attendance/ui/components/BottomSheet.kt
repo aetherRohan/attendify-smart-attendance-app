@@ -225,7 +225,7 @@ fun ActiveBroadcastBottomSheet(
             Spacer(modifier = Modifier.height(48.dp))
 
             Text(
-                text = "Please keep this screen open and remain near the teacher's device.",
+                text = "You can safely minimize this screen. The broadcast will continue in the background",
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.Gray,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center

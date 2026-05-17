@@ -38,13 +38,13 @@ class TeacherClassDetailsActivity : ComponentActivity() {
         val section = intent.getStringExtra("CLASS_SECTION")
         val classCode = intent.getStringExtra("CLASS_CODE")
 
-        enableEdgeToEdge() // 👈
+        enableEdgeToEdge()
         setContent {
-            AttendifySmartAttendanceTheme { // 👈
+            AttendifySmartAttendanceTheme {
                 Surface(
                     modifier = Modifier
                         .fillMaxSize()
-                        .windowInsetsPadding(WindowInsets.systemBars), // 👈
+                        .windowInsetsPadding(WindowInsets.systemBars),
                     color = MaterialTheme.colorScheme.background
                 ) {
                     TeacherClassDetailScreen(

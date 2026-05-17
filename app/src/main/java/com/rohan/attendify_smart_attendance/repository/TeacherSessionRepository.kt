@@ -254,7 +254,6 @@ class TeacherSessionRepository(
 
 
 
-
     suspend fun recordCurrentWindowAttendance(
         classId: String,
         windowIndex: Int,

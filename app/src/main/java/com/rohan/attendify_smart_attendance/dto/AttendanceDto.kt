@@ -4,6 +4,8 @@ import com.rohan.attendify_smart_attendance.data.local.entity.AttendanceEntity
 
 data class AttendanceDto(
     val classSessionId: String,
+    val classId: String,
+    val date: String,
     val studentId: String,
     val isPresent: Boolean,
     val studentName: String,
@@ -13,6 +15,8 @@ data class AttendanceDto(
 
     fun toRoomEntity(): AttendanceEntity{
        return AttendanceEntity(
+           classId = this.classId,
+           date = this.date,
            classSessionId=this.classSessionId,
            studentId = this.studentId,
            isPresent = this.isPresent,

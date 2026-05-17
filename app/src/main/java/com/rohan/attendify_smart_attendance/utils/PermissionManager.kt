@@ -11,29 +11,43 @@ import androidx.core.content.ContextCompat
 object PermissionManager {
 
     fun hasBluetoothPermissions(context: Context): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            // Android 12+ (API 31+) logic
+        var hasPerms = true
+
+        //Check Notification Permission
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            hasPerms = hasPerms && checkPermission(context, Manifest.permission.POST_NOTIFICATIONS)
+        }
+
+        //  Check Bluetooth  Permissions
+        hasPerms = hasPerms && if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             checkPermission(context, Manifest.permission.BLUETOOTH_SCAN) &&
                     checkPermission(context, Manifest.permission.BLUETOOTH_ADVERTISE) &&
                     checkPermission(context, Manifest.permission.BLUETOOTH_CONNECT)
         } else {
-            // Android 11 & Older logic (Location is required for scanning)
             checkPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
         }
+
+        return hasPerms
     }
 
     fun requestBluetoothPermissions(activity: Activity, requestCode: Int) {
-        val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            arrayOf(
-                Manifest.permission.BLUETOOTH_SCAN,
-                Manifest.permission.BLUETOOTH_ADVERTISE,
-                Manifest.permission.BLUETOOTH_CONNECT
-            )
-        } else {
-            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
+        val permissionsToRequest = mutableListOf<String>()
+
+        //  Add Notification Permission (Android 13+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissionsToRequest.add(Manifest.permission.POST_NOTIFICATIONS)
         }
 
-        ActivityCompat.requestPermissions(activity, permissions, requestCode)
+        //  Add Bluetooth/Location Permissions
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            permissionsToRequest.add(Manifest.permission.BLUETOOTH_SCAN)
+            permissionsToRequest.add(Manifest.permission.BLUETOOTH_ADVERTISE)
+            permissionsToRequest.add(Manifest.permission.BLUETOOTH_CONNECT)
+        } else {
+            permissionsToRequest.add(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+
+        ActivityCompat.requestPermissions(activity, permissionsToRequest.toTypedArray(), requestCode)
     }
 
     private fun checkPermission(context: Context, permission: String): Boolean {

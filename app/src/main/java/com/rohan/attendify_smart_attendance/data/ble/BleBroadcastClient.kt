@@ -10,7 +10,6 @@ import android.bluetooth.le.BluetoothLeAdvertiser
 import android.content.Context
 import android.os.ParcelUuid
 import android.util.Log
-import kotlinx.coroutines.CoroutineScope
 import java.nio.ByteBuffer
 import java.util.UUID
 
@@ -29,7 +28,7 @@ class BleBroadcastClient(private val context: Context) {
 
 
     @SuppressLint("MissingPermission")
-    fun startAttendance(studentId: String): Boolean {
+    fun startAttendance(bleUuid: String): Boolean {
         if (advertiser == null) {
             Log.e("BleAdvertiser", "❌ CRITICAL: Device does not support Bluetooth LE Advertising.")
             return false
@@ -43,7 +42,7 @@ class BleBroadcastClient(private val context: Context) {
 
         try {
             // Convert Student UUID String -> 16 raw bytes
-            val uuid = UUID.fromString(studentId)
+            val uuid = UUID.fromString(bleUuid)
             val dataBytes = ByteBuffer.allocate(16).apply {
                 putLong(uuid.mostSignificantBits)
                 putLong(uuid.leastSignificantBits)
@@ -53,8 +52,8 @@ class BleBroadcastClient(private val context: Context) {
             val settings = AdvertiseSettings.Builder()
                 .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY)
                 .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_HIGH)
-                .setConnectable(false) // CRITICAL: We are broadcasting ONLY. No connections allowed.
-                .setTimeout(0) // 0 = Infinite (We handle the timeout in the Service)
+                .setConnectable(false) //  We are broadcasting ONLY. No connections allowed.
+                .setTimeout(0)
                 .build()
 
             // Data: Pack the 0xFFFF Key + 16-byte Student ID
@@ -62,13 +61,13 @@ class BleBroadcastClient(private val context: Context) {
                 .setIncludeDeviceName(false)
                 .setIncludeTxPowerLevel(false)
                 .addServiceUuid(SERVICE_UUID) // "Key" (0xFFFF)
-                .addServiceData(SERVICE_UUID, dataBytes) // "Payload" (Student ID)
+                .addServiceData(SERVICE_UUID, dataBytes) // "Payload" (Ble Uuid)
                 .build()
 
             // Callback
             advertiseCallback = object : AdvertiseCallback() {
                 override fun onStartSuccess(settingsInEffect: AdvertiseSettings) {
-                    Log.i("BleAdvertiser", "✅ Broadcast STARTED. ID: $studentId")
+                    Log.i("BleAdvertiser", "✅ Broadcast STARTED. ID: $bleUuid")
                     Log.v("BleAdvertiser", "TxPower: ${settingsInEffect.txPowerLevel}, Mode: ${settingsInEffect.mode}")
                 }
 

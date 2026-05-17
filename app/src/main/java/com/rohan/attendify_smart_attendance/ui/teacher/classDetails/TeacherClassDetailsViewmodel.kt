@@ -67,8 +67,6 @@ class TeacherClassDetailViewModel(
                 Log.e("classSession", "Network Sync Failed: ${e.message}")
             }
         }
-
-
     }
 }
 

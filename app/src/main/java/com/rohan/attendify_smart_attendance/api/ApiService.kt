@@ -1,5 +1,6 @@
 package com.rohan.attendify_smart_attendance.api
 
+import com.rohan.attendify_smart_attendance.data.local.entity.AttendanceEntity
 import com.rohan.attendify_smart_attendance.dto.AttendanceDto
 import retrofit2.http.Query
 import com.rohan.attendify_smart_attendance.dto.ClassDto
@@ -55,6 +56,12 @@ interface ApiService {
 
     @GET("/api/student/class/getClasses")
     suspend fun getAllClassesForStudent(): Response<List<ClassDto>>
+
+    @GET("/api/student/classSession/getAttendance")
+    suspend fun getAllClassAttendanceForStudent(
+        @Query("classId") classId: String,
+        @Query("studentId")studentId: String
+    ): Response<List<AttendanceDto>>
 
 
     @POST("/api/student/class/joinClass")

@@ -29,7 +29,7 @@ class StudentClassDetailActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val name = intent.getStringExtra("USER_NAME") ?: "Student"
+        val userName = intent.getStringExtra("USER_NAME") ?: "Student"
         val userId = intent.getStringExtra("USER_ID") ?: ""
         val classId = intent.getStringExtra("EXTRA_CLASS_ID")
         val className = intent.getStringExtra("CLASS_NAME")
@@ -40,17 +40,17 @@ class StudentClassDetailActivity : ComponentActivity() {
         val bleUuid = viewModel.bleUuid.value
         Log.i("DEBUG_TEST", "fetched ble id from viewmodel :${bleUuid}")
 
-        enableEdgeToEdge() // 👈
+        enableEdgeToEdge()
         setContent {
-            AttendifySmartAttendanceTheme { // 👈
+            AttendifySmartAttendanceTheme {
                 Surface(
                     modifier = Modifier
                         .fillMaxSize()
-                        .windowInsetsPadding(WindowInsets.systemBars), // 👈
+                        .windowInsetsPadding(WindowInsets.systemBars),
                     color = MaterialTheme.colorScheme.background
                 ) {
                     StudentClassDetailScreen(
-                        name = name,
+                        name = userName,
                         userId = userId,
                         classId = classId,
                         className = className,

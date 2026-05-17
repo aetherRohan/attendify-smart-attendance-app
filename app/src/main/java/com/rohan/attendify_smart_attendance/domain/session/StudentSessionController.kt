@@ -32,8 +32,7 @@ class StudentSessionController(
     }
 
     fun startAttendance( bleUuid: String) {
-        Log.d("StudentController","start attendance session controller reached")
-        Log.e("bleuuid","function startAttendance called from controller bleUuid:${bleUuid} ")
+
         if (bleUuid.isBlank()) {
             currentStatus = currentStatus.copy(errorMessage = "Invalid Student ID")
             updateState()
@@ -79,9 +78,9 @@ class StudentSessionController(
 
     // --- Helpers ---
 
-    private fun startAdvertisingHelper(id: String) {
-        Log.d("StudentController", "Starting Broadcast ,Student ID : $id ")
-        bleBroadcast.startAttendance(id)
+    private fun startAdvertisingHelper(bleUuid: String) {
+        Log.d("StudentController", "Starting Broadcast ,Student ID : $bleUuid ")
+        bleBroadcast.startAttendance(bleUuid)
 
         // Fixed: Update local state then push
         currentStatus = currentStatus.copy(

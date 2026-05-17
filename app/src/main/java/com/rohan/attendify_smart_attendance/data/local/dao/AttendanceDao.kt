@@ -17,8 +17,8 @@ interface AttendanceDao {
     @Query("SELECT * FROM attendance WHERE classSessionId=:classSessionId ")
      fun getAllAttendances(classSessionId: String): Flow<List<AttendanceEntity>>
 
-    @Query("SELECT * FROM attendance WHERE classSessionId=:classSessionId AND studentId=:studentId ")
-     fun getAttendance(classSessionId: String,studentId: String): Flow<List<AttendanceEntity>>
+    @Query("SELECT * FROM attendance WHERE classId=:classId AND studentId=:studentId ")
+     fun getAttendance(classId: String,studentId: String): Flow<List<AttendanceEntity>>
 
     @Query("DELETE FROM attendance")
     suspend fun clearAllAttendances()

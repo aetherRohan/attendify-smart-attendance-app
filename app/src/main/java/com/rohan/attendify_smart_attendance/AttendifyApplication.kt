@@ -32,6 +32,7 @@ class AttendifyApplication : Application() {
 
         StudentSessionRepository(
             classDao = database.classDao(),
+            attendanceDao = database.attendanceDao(),
             tokenManager = tokenManager,
             api = api,
             database = database
