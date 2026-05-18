@@ -3,7 +3,7 @@ import androidx.room.Entity
 
 @Entity(
     tableName = "student_roster",
-    primaryKeys = ["studentId", "classId"] // A student can be in multiple classes
+    primaryKeys = ["studentId", "classId"]
 )
 data class StudentRosterEntity(
     val studentId: String,

@@ -11,33 +11,42 @@ import kotlinx.coroutines.withContext
 import retrofit2.Response
 
 
-class AuthRepository(val api: ApiService,val tokenManager: TokenManager,val database: AttendifyDatabase) {
+class AuthRepository(
+    val api: ApiService,
+    val tokenManager: TokenManager,
+    val database: AttendifyDatabase
+) {
 
-    // for login
     suspend fun login(email: String, password: String): Response<LoginResponse> {
-       val response= api.loginUser(
+        val response = api.loginUser(
             LoginRequest(email = email, password = password)
         )
         if (response.isSuccessful) {
             response.body()?.let {
                 tokenManager.saveAccessToken(it.accessToken)
-                tokenManager.saveUserDetails(it.name,it.role,it.userId,it.bleUuid,it.refreshToken)
+                tokenManager.saveUserDetails(
+                    it.name,
+                    it.role,
+                    it.userId,
+                    it.bleUuid,
+                    it.refreshToken
+                )
             }
         }
         return response
     }
-    // for student sign up
+
+
     suspend fun signupStudent(name: String, email: String, password: String) =
         api.registerStudent(
             SignupRequest(name = name, email = email, password = password)
         )
 
-    //for teacher sign up
+
     suspend fun signupTeacher(name: String, email: String, password: String) =
         api.registerTeacher(
             SignupRequest(name = name, email = email, password = password)
         )
-
 
     suspend fun performLogout() {
 
@@ -48,5 +57,4 @@ class AuthRepository(val api: ApiService,val tokenManager: TokenManager,val data
             database.clearAllTables()
         }
     }
-
 }

@@ -43,48 +43,32 @@ class TeacherSessionRepository(
     private val _sessionStatus = MutableStateFlow(TeacherSessionController.SessionStatus())
     val sessionStatus = _sessionStatus.asStateFlow()
 
-    val TAG="pendingSession"
-
-
-    //
     fun updateStatus(newStatus: TeacherSessionController.SessionStatus) {
         _sessionStatus.value = newStatus
     }
 
-
-
     suspend fun getStudentsForClass(classId: String): List<StudentRosterEntity> {
-        Log.e("session", "trying to fetch student from db")
         return try {
             rosterDao.getStudentsForClass(classId)
         } catch (e: Exception) {
-
-            Log.e("session", "CRASH IN DB READ: ${e.message}", e)
+            Log.e("TeacherRepo", "CRASH IN DB READ: ${e.message}", e)
             emptyList()
         }
     }
 
     fun getLocalClassesFlow(): Flow<List<ClassEntity>> {
         return classDao.getAllClassesFlow()
-            .onStart {
-                Log.i("TeacherRepo", "Started observing local classes DB")
-            }
             .catch { e ->
                 Log.e("TeacherRepo", "Database read error: ${e.message}", e)
-                // Emit an empty list to prevent the UI from crashing if the DB fails
-                emit(emptyList())
+                emit(emptyList<ClassEntity>())
             }
     }
 
     fun getLocalClassSessionFlow(classId: String): Flow<List<ClassSessionEntity>> {
         return classSessionDao.getAllClassSessions(classId)
-            .onStart {
-                Log.i("classSession", "Started observing local  DB for class sessions ")
-            }
             .catch { e ->
-                Log.e("classSession", "Database read error: ${e.message}", e)
-                // Emit an empty list to prevent the UI from crashing if the DB fails
-                emit(emptyList())
+                Log.e("TeacherRepo", "Database read error: ${e.message}", e)
+                emit(emptyList<ClassSessionEntity>())
             }
     }
 
@@ -92,58 +76,49 @@ class TeacherSessionRepository(
     fun getLocalAttendanceFlow(classSessionId: String): Flow<List<AttendanceEntity>> {
         return attendanceDao.getAllAttendances(classSessionId)
             .onStart {
-                Log.i("classSession", "Started observing local  DB for class sessions ")
+                Log.i("TeacherRepo", "Started observing local  DB for class sessions ")
             }
             .catch { e ->
-                Log.e("classSession", "Database read error: ${e.message}", e)
-                // Emit an empty list to prevent the UI from crashing if the DB fails
+                Log.e("TeacherRepo", "Database read error: ${e.message}", e)
                 emit(emptyList())
             }
     }
 
 
-   suspend fun createClass(className: String,section: String,duration: String){
-       coroutineScope {
-           try {
-               Log.i("joinClass", "initiating the call to join class")
+    suspend fun createClass(className: String, section: String, duration: String) {
+        coroutineScope {
+            try {
+                val classReqDto = CreateClassRequest(
+                    className = className,
+                    section = section,
+                    duration = duration
+                )
+                val classResponse = api.createClass(classReqDto)
 
-               val classReqDto= CreateClassRequest(
-                   className=className,
-                   section = section,
-                   duration=duration
-               )
+                if (classResponse.isSuccessful && classResponse.body() != null) {
 
-               val classResponse = api.createClass(classReqDto)
+                    val classResponseBody = classResponse.body()!!
+                    val classEntity = classResponseBody.toRoomEntity()
 
-               if (classResponse.isSuccessful && classResponse.body() != null) {
-
-                   val classResponseBody = classResponse.body()!!
-                   val classEntity = classResponseBody.toRoomEntity()
-
-                   database.withTransaction {
-                       classDao.insertClass(classEntity)
-                   }
-               }
-           } catch (e: Exception) {
-               e.printStackTrace()
-               Log.e("joinClass", "${e.message}")
-           }
-       }
-   }
+                    database.withTransaction {
+                        classDao.insertClass(classEntity)
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Log.e("TeacherRepo", "${e.message}")
+            }
+        }
+    }
 
 
     suspend fun syncAllClasses() {
         coroutineScope {
             try {
-                Log.i("TeacherRepo", "Starting Eager Sync for Teacher")
-
-                // 1. Fetch Class List from Spring Boot
                 val classResponse = api.getAllClassesForTeacher()
 
                 if (classResponse.isSuccessful && classResponse.body() != null) {
                     val classDtos = classResponse.body()!!
-
-                    // 2. Fetch all rosters concurrently
                     val rosterJobs = classDtos.map { classDto ->
                         async {
                             val rosterResponse = api.getClassRoster(classDto.classId)
@@ -153,19 +128,19 @@ class TeacherSessionRepository(
                                     studentDto.toRoomEntity()
                                 } ?: emptyList()
                             } else {
-                                Log.e("TeacherRepo", "Failed to fetch roster for ${classDto.classId}")
+                                Log.e(
+                                    "TeacherRepo",
+                                    "Failed to fetch roster for ${classDto.classId}"
+                                )
                                 emptyList()
                             }
                         }
                     }
-                    // Wait for all roster network calls to finish
                     val allStudents = rosterJobs.awaitAll().flatten()
 
                     val classEntities = classDtos.map { dto ->
                         dto.toRoomEntity()
                     }
-
-                    //  Save everything atomically to Room to prevent data loss
                     database.withTransaction {
                         classDao.clearAllClasses()
                         rosterDao.clearAllStudents()
@@ -174,13 +149,10 @@ class TeacherSessionRepository(
                         rosterDao.insertRoster(allStudents)
                     }
 
-                    Log.i("TeacherRepo", "Successfully synced ${classEntities.size} classes and ${allStudents.size} students.")
                 } else {
                     Log.e("TeacherRepo", "Server returned error: ${classResponse.code()}")
                 }
             } catch (e: Exception) {
-                // If there's no internet, this catch block catches the Retrofit exception.
-                //the UI just keeps displaying the old Room data!
                 Log.e("TeacherRepo", "Network Sync Failed. Working offline. Error: ${e.message}")
             }
         }
@@ -190,20 +162,13 @@ class TeacherSessionRepository(
     suspend fun syncAllClassSessions(classId: String) {
         coroutineScope {
             try {
-                Log.i("classSession", "Starting Eager Sync for class-sessions")
-
                 val classSessionResponse = api.getAllClassSessionForTeacher(classId)
 
                 if (classSessionResponse.isSuccessful && classSessionResponse.body() != null) {
                     val classSessionDtos = classSessionResponse.body()!!
 
-                    // 2. Fetch all attendance  concurrently
                     val attendanceJobs = classSessionDtos.map { classSessionDto ->
                         async {
-                            Log.i(
-                                "classSession",
-                                "trying to fetch attendance for ${classSessionDto.classSessionId}"
-                            )
                             val attendanceResponse =
                                 api.getAllAttendancesForTeacher(classSessionDto.classSessionId)
                             if (attendanceResponse.isSuccessful) {
@@ -212,22 +177,15 @@ class TeacherSessionRepository(
                                     attendanceDto.toRoomEntity()
                                 } ?: emptyList()
                             } else {
-                                Log.e(
-                                    "classSession",
-                                    "Failed to fetch attendance for class session id: ${classSessionDto.classSessionId}"
-                                )
                                 emptyList()
                             }
                         }
                     }
-                    // Wait for all attendance network calls to finish
                     val allAttendances = attendanceJobs.awaitAll().flatten()
 
                     val classSessionEntities = classSessionDtos.map { dto ->
                         dto.toRoomEntity()
                     }
-
-                    //  Save everything atomically to Room to prevent data loss
                     database.withTransaction {
                         classSessionDao.clearAllClassSessions()
                         attendanceDao.clearAllAttendances()
@@ -235,24 +193,14 @@ class TeacherSessionRepository(
                         classSessionDao.insertClassSession(classSessionEntities)
                         attendanceDao.insertAttendance(allAttendances)
                     }
-
-                    Log.i(
-                        "classSession",
-                        "Successfully synced ${classSessionEntities.size} sessions and ${allAttendances.size} attendances."
-                    )
                 } else {
-                    Log.e("classSession", "Server returned error: ${classSessionResponse.code()}")
+                    Log.e("TeacherRepo", "Server returned error: ${classSessionResponse.code()}")
                 }
             } catch (e: Exception) {
-                // If there's no internet, this catch block catches the Retrofit exception.
-                //the UI just keeps displaying the old Room data!
-                Log.e("classSession", "Network Sync Failed. Working offline. Error: ${e.message}")
+                Log.e("TeacherRepo", "Network Sync Failed. Working offline. Error: ${e.message}")
             }
         }
     }
-
-
-
 
     suspend fun recordCurrentWindowAttendance(
         classId: String,
@@ -261,14 +209,13 @@ class TeacherSessionRepository(
     ) {
         withContext(Dispatchers.IO) {
             try {
-                // Format: MMM d, yyyy • hh:mm a
-                val todayDate = SimpleDateFormat("MMM d, yyyy • hh:00 a", Locale.getDefault()).format(Date())
 
-                // Query local Room DB
+                val todayDate =
+                    SimpleDateFormat("MMM d, yyyy • hh:00 a", Locale.getDefault()).format(Date())
+
                 val existingSession = pendingSessionDao.getSessionForToday(classId, todayDate)
 
                 if (existingSession == null) {
-                    //  First scan  Initialize map with 1 hit per student.
                     val initialHits = scannedStudents.associateWith { 1 }
 
                     val newSession = PendingSessionEntity(
@@ -277,13 +224,7 @@ class TeacherSessionRepository(
                         totalWindows = windowIndex,
                         studentHitsMap = initialHits
                     )
-
                     pendingSessionDao.insertPendingSession(newSession)
-                    Log.i(
-                        TAG,
-                        "Created new session for $todayDate. Initialized ${scannedStudents.size} students."
-                    )
-
                 } else {
                     val updatedHits = existingSession.studentHitsMap.toMutableMap()
 
@@ -291,23 +232,16 @@ class TeacherSessionRepository(
                         val currentHits = updatedHits[studentId] ?: 0
                         updatedHits[studentId] = currentHits + 1
                     }
-
                     val updatedSession = existingSession.copy(
                         studentHitsMap = updatedHits,
                         totalWindows = windowIndex
                     )
-
                     pendingSessionDao.updateSession(updatedSession)
-
-                    Log.i(
-                        TAG,
-                        "Updated session for $todayDate. Total windows now: ${updatedSession.totalWindows}"
-                    )
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to record window attendance safely: ${e.message}", e)
+                Log.e("TeacherRepo", "Failed to record window attendance safely: ${e.message}", e)
             }
         }
     }
- }
+}
 

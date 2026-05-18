@@ -16,9 +16,9 @@ class StudentSessionController(
     private var sessionJob: Job? = null
 
     companion object {
-        private const val BROADCAST_WINDOW = 3 * 60_000L // 3 Minutes
-        private const val REST_WINDOW = 2 * 60_000L      // 2 Minutes
-        private const val MAX_SESSION_TIME = 90 * 60_000L // 90 Minutes Safety
+        private const val BROADCAST_WINDOW = 3 * 60_000L
+        private const val REST_WINDOW = 2 * 60_000L
+        private const val MAX_SESSION_TIME = 90 * 60_000L
     }
 
     data class StudentSessionState(
@@ -31,7 +31,7 @@ class StudentSessionController(
         studentRepo.updateStatus(currentStatus)
     }
 
-    fun startAttendance( bleUuid: String) {
+    fun startAttendance(bleUuid: String) {
 
         if (bleUuid.isBlank()) {
             currentStatus = currentStatus.copy(errorMessage = "Invalid Student ID")
@@ -45,7 +45,7 @@ class StudentSessionController(
         val startTime = System.currentTimeMillis()
         val endTime = startTime + MAX_SESSION_TIME
 
-        // Initial State Update
+
         currentStatus = currentStatus.copy(
             isBroadcasting = true,
             startTime = startTime,
@@ -54,14 +54,13 @@ class StudentSessionController(
         updateState()
 
         sessionJob = sessionScope.launch {
-            Log.d("StudentController", "Session Started. Max Duration: 90min")
 
             while (isActive && System.currentTimeMillis() < endTime) {
-                // BROADCAST =3 min
+                // BROADCAST= 3 min
                 startAdvertisingHelper(bleUuid)
                 delay(BROADCAST_WINDOW)
 
-                //  REST =2 min
+                //  REST= 2 min
                 if (System.currentTimeMillis() < endTime) {
                     delay(REST_WINDOW)
                 }
@@ -76,13 +75,11 @@ class StudentSessionController(
         stopAdvertisingHelper()
     }
 
-    // --- Helpers ---
 
     private fun startAdvertisingHelper(bleUuid: String) {
         Log.d("StudentController", "Starting Broadcast ,Student ID : $bleUuid ")
         bleBroadcast.startAttendance(bleUuid)
 
-        // Fixed: Update local state then push
         currentStatus = currentStatus.copy(
             isBroadcasting = true,
         )
@@ -90,9 +87,8 @@ class StudentSessionController(
     }
 
     private fun stopAdvertisingHelper() {
-        Log.d("StudentController",  "Session Stopped")
+        Log.d("StudentController", "Session Stopped")
         bleBroadcast.stopAttendance()
-        // Fixed: Update local state then push
         currentStatus = currentStatus.copy(
             isBroadcasting = false
         )

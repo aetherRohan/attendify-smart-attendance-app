@@ -30,13 +30,12 @@ class BleBroadcastClient(private val context: Context) {
     @SuppressLint("MissingPermission")
     fun startAttendance(bleUuid: String): Boolean {
         if (advertiser == null) {
-            Log.e("BleAdvertiser", "❌ CRITICAL: Device does not support Bluetooth LE Advertising.")
+            Log.e("BleAdvertiser", "Device does not support Bluetooth LE Advertising.")
             return false
         }
 
         // Prevent duplicate broadcasts
         if (advertiseCallback != null) {
-            Log.w("BleAdvertiser", "⚠️ Advertising already active. Stopping previous session first.")
             stopAttendance()
         }
 
@@ -52,23 +51,20 @@ class BleBroadcastClient(private val context: Context) {
             val settings = AdvertiseSettings.Builder()
                 .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY)
                 .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_HIGH)
-                .setConnectable(false) //  We are broadcasting ONLY. No connections allowed.
-                .setTimeout(0)
-                .build()
+                .setConnectable(false) //   broadcasting ONLY. No connections allowed.
+                .setTimeout(0).build()
 
             // Data: Pack the 0xFFFF Key + 16-byte Student ID
-            val data = AdvertiseData.Builder()
-                .setIncludeDeviceName(false)
-                .setIncludeTxPowerLevel(false)
-                .addServiceUuid(SERVICE_UUID) // "Key" (0xFFFF)
-                .addServiceData(SERVICE_UUID, dataBytes) // "Payload" (Ble Uuid)
-                .build()
+            val data =
+                AdvertiseData.Builder().setIncludeDeviceName(false).setIncludeTxPowerLevel(false)
+                    .addServiceUuid(SERVICE_UUID) // "Key" (0xFFFF)
+                    .addServiceData(SERVICE_UUID, dataBytes) // "Payload" (Ble Uuid)
+                    .build()
 
             // Callback
             advertiseCallback = object : AdvertiseCallback() {
                 override fun onStartSuccess(settingsInEffect: AdvertiseSettings) {
-                    Log.i("BleAdvertiser", "✅ Broadcast STARTED. ID: $bleUuid")
-                    Log.v("BleAdvertiser", "TxPower: ${settingsInEffect.txPowerLevel}, Mode: ${settingsInEffect.mode}")
+                    Log.i("BleAdvertiser", " Broadcast STARTED. ID: $bleUuid")
                 }
 
                 override fun onStartFailure(errorCode: Int) {
@@ -79,7 +75,7 @@ class BleBroadcastClient(private val context: Context) {
                         ADVERTISE_FAILED_TOO_MANY_ADVERTISERS -> "Too many advertisers"
                         else -> "Unknown error ($errorCode)"
                     }
-                    Log.e("BleAdvertiser", "❌ Broadcast FAILED: $errorMsg")
+                    Log.e("BleAdvertiser", " Broadcast FAILED: $errorMsg")
                 }
             }
 
@@ -88,24 +84,23 @@ class BleBroadcastClient(private val context: Context) {
             return true
 
         } catch (e: Exception) {
-            Log.e("BleAdvertiser", "❌ Exception starting advertising: ${e.message}")
+            Log.e("BleAdvertiser", " Exception when starting advertising: ${e.message}")
             return false
         }
     }
 
 
     @SuppressLint("MissingPermission")
-    fun stopAttendance(){
+    fun stopAttendance() {
         if (advertiser == null) return
 
         try {
             advertiseCallback?.let {
                 advertiser?.stopAdvertising(it)
-                Log.d("BleAdvertiser", "🛑 Broadcast STOPPED successfully.")
             }
             advertiseCallback = null
         } catch (e: Exception) {
-            Log.e("BleAdvertiser", "⚠️ Error stopping advertising: ${e.message}")
+            Log.e("BleAdvertiser", " Error stopping advertising: ${e.message}")
         }
     }
 }

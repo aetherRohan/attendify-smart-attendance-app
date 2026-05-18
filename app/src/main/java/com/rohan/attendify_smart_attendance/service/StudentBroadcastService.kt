@@ -15,36 +15,33 @@ import kotlinx.coroutines.*
 class StudentBroadcastService : Service() {
 
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-    private var studentSessionController: StudentSessionController?=null
-    private  val NOTIFICATION_ID = 101
-
-
+    private var studentSessionController: StudentSessionController? = null
+    private val NOTIFICATION_ID = 101
 
 
     override fun onCreate() {
         super.onCreate()
         val bleBroadcast = BleBroadcastClient(this)
-        val app =application as AttendifyApplication
-        studentSessionController=StudentSessionController(bleBroadcast = bleBroadcast,
-                                                          sessionScope = serviceScope,
-                                                          studentRepo = app.studentRepository)
-        Log.d("StudentService", "✅ Service Created")
+        val app = application as AttendifyApplication
+        studentSessionController = StudentSessionController(
+            bleBroadcast = bleBroadcast,
+            sessionScope = serviceScope,
+            studentRepo = app.studentRepository
+        )
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
         val bleUuid = intent?.getStringExtra("USER_BLE_UUID")
 
-
-        if (bleUuid.isNullOrEmpty()){
-            Log.e("StudentService", "❌ Error: No BLE_UUID provided.")
+        if (bleUuid.isNullOrEmpty()) {
+            Log.e("StudentService", " Error: No BLE_UUID provided.")
             stopSelf()
             return START_NOT_STICKY
         }
-
         startForegroundServicePromotion(isBroadcasting = true)
 
-        studentSessionController?.startAttendance( bleUuid = bleUuid)
+        studentSessionController?.startAttendance(bleUuid = bleUuid)
 
         return START_STICKY
     }
@@ -52,8 +49,7 @@ class StudentBroadcastService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        Log.d("StudentService", "🛑 Service Destroyed")
-       studentSessionController?.stopAttendance()
+        studentSessionController?.stopAttendance()
         serviceScope.cancel()
     }
 
@@ -61,7 +57,7 @@ class StudentBroadcastService : Service() {
 
     private fun startForegroundServicePromotion(isBroadcasting: Boolean) {
 
-        NotificationHelper.createAttendanceNotification(this,false,"Marking Attendance")
+        NotificationHelper.createAttendanceNotification(this, false, "Marking Attendance")
 
         val notification = NotificationHelper.createAttendanceNotification(
             context = this,
@@ -72,16 +68,13 @@ class StudentBroadcastService : Service() {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) { // API 34+
 
-
-                val hasPermission = checkSelfPermission(android.Manifest.permission.BLUETOOTH_ADVERTISE) ==
-                        android.content.pm.PackageManager.PERMISSION_GRANTED
+                val hasPermission =
+                    checkSelfPermission(android.Manifest.permission.BLUETOOTH_ADVERTISE) == android.content.pm.PackageManager.PERMISSION_GRANTED
 
                 if (!hasPermission) {
-                    Log.e("StudentService", "❌ FATAL: BLUETOOTH_ADVERTISE permission missing for FGS")
-
+                    Log.e("StudentService", "BLUETOOTH_ADVERTISE permission missing for FGS")
                     return
                 }
-
                 startForeground(
                     NOTIFICATION_ID,
                     notification,
@@ -96,13 +89,8 @@ class StudentBroadcastService : Service() {
             } else {
                 startForeground(NOTIFICATION_ID, notification)
             }
-
-            Log.i("StudentService", "✅ startForeground successful")
-
         } catch (e: Exception) {
-
-            Log.e("StudentService", "❌ Foreground Error: ${e.message}")
-            e.printStackTrace()
+            Log.e("StudentService", "Foreground Error: ${e.message}")
             stopSelf()
         }
     }

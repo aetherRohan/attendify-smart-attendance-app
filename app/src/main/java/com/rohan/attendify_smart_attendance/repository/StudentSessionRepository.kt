@@ -26,37 +26,29 @@ class StudentSessionRepository(
     private val api: ApiService,
     private val database: AttendifyDatabase
 ) {
-
     private var _sessionStatus = MutableStateFlow(StudentSessionController.StudentSessionState())
     var sessionStatus = _sessionStatus.asStateFlow()
+
+
     fun updateStatus(newStatus: StudentSessionController.StudentSessionState) {
         _sessionStatus.value = newStatus
     }
 
-
     fun getLocalClassesFlow(): Flow<List<ClassEntity>> {
 
         return classDao.getAllClassesFlow()
-            .onStart {
-                Log.i("StudentRepo", "Started observing local classes DB")
-            }
             .catch { e ->
                 Log.e("StudentRepo", "Database read error: ${e.message}", e)
-                // Emit an empty list to prevent the UI from crashing if the DB fails
-                emit(emptyList())
+                emit(emptyList<ClassEntity>())
             }
     }
 
     fun getLocalAttendanceFlow(classId: String, studentId: String): Flow<List<AttendanceEntity>> {
 
         return attendanceDao.getAttendance(classId = classId, studentId = studentId)
-            .onStart {
-                Log.i("StudentRepo", "Started observing local classes DB")
-            }
             .catch { e ->
                 Log.e("StudentRepo", "Database read error: ${e.message}", e)
-                // Emit an empty list to prevent the UI from crashing if the DB fails
-                emit(emptyList())
+                emit(emptyList<AttendanceEntity>())
             }
     }
 
@@ -68,9 +60,6 @@ class StudentSessionRepository(
     suspend fun syncAllStudentClass() {
         coroutineScope {
             try {
-                Log.i("StudentRepo", "Starting Eager Sync for Student")
-
-                // Fetch Class List from server
                 val classResponse = api.getAllClassesForStudent()
 
                 if (classResponse.isSuccessful && classResponse.body() != null) {
@@ -79,30 +68,23 @@ class StudentSessionRepository(
                     val classEntities = classDtos.map { dto ->
                         dto.toRoomEntity()
                     }
-
-                    //  Save everything atomically to Room to prevent data loss
                     database.withTransaction {
                         classDao.clearAllClasses()
                         classDao.insertClasses(classEntities)
                     }
-
-                    Log.i("StudentRepo", "Successfully synced ${classEntities.size} classes")
                 } else {
                     Log.e("StudentRepo", "Server returned error: ${classResponse.code()}")
                 }
             } catch (e: Exception) {
-                // If there's no internet, this catch block catches the Retrofit exception.
-                //the UI just keeps displaying the old Room data!
                 Log.e("StudentRepo", "Network Sync Failed. Working offline. Error: ${e.message}")
             }
         }
     }
 
-
     suspend fun syncAllAttendance(classId: String, studentId: String) {
         coroutineScope {
             try {
-                Log.i("studentSession", "Starting Eager Sync for session attendance")
+                Log.i("StudentRepo", "Starting Eager Sync for session attendance")
 
                 val attendanceResponse = api.getAllClassAttendanceForStudent(
                     classId = classId, studentId = studentId
@@ -120,27 +102,18 @@ class StudentSessionRepository(
                         attendanceDao.clearAllAttendances()
                         attendanceDao.insertAttendance(attendanceEntities)
                     }
-
-                    Log.i(
-                        "studentSession",
-                        "Successfully synced ${attendanceEntities.size} attendances."
-                    )
                 } else {
-                    Log.e("studentSession", "Server returned error: ${attendanceResponse.code()}")
+                    Log.e("StudentRepo", "Server returned error: ${attendanceResponse.code()}")
                 }
             } catch (e: Exception) {
-                // If there's no internet, this catch block catches the Retrofit exception.
-                Log.e("studentSession", "Network Sync Failed. Working offline. Error: ${e.message}")
+                Log.e("StudentRepo", "Network Sync Failed. Working offline. Error: ${e.message}")
             }
         }
     }
 
-
     suspend fun joinClass(classCode: String) {
         coroutineScope {
             try {
-                Log.i("joinClass", "initiating the call to join class")
-
                 val classResponse = api.joinClass(classCode)
 
                 if (classResponse.isSuccessful && classResponse.body() != null) {
@@ -154,10 +127,8 @@ class StudentSessionRepository(
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                Log.e("joinClass", "${e.message}")
+                Log.e("StudentRepo", "${e.message}")
             }
         }
     }
-
-
 }

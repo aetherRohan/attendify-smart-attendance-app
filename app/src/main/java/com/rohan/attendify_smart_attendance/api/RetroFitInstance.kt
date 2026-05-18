@@ -25,17 +25,17 @@ object RetrofitInstance {
 
                 val requestBuilder = chain.request().newBuilder()
 
-                // Grab the token from Jetpack DataStore/Tink vault
+                // Grab  token from  DataStore
                 val token = tokenManager.getAccessTokenSync()
 
-                // If the token exists, glue it to the header
+                // If  token exists, add it to the header
                 if (!token.isNullOrEmpty()) {
                     requestBuilder.addHeader("Authorization", "Bearer $token")
                 }
                 chain.proceed(requestBuilder.build())
             }
 
-            .authenticator (TokenAuthenticator(context = context, tokenManager = tokenManager))
+            .authenticator(TokenAuthenticator(context = context, tokenManager = tokenManager))
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(15, TimeUnit.SECONDS)
             .writeTimeout(15, TimeUnit.SECONDS)

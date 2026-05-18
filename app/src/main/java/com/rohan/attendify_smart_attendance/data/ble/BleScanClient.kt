@@ -1,4 +1,5 @@
 package com.rohan.attendify_smart_attendance.data.ble
+
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.le.*
@@ -39,7 +40,7 @@ class BleScanClient(
 
         // Hardware Filtering
         val filter = ScanFilter.Builder()
-            .setServiceData(SERVICE_UUID,null)
+            .setServiceData(SERVICE_UUID, null)
             .build()
 
         val filters = listOf(filter)
@@ -57,20 +58,18 @@ class BleScanClient(
         scanCallback = object : ScanCallback() {
 
             override fun onScanResult(callbackType: Int, result: ScanResult) {
-                //  Get the Scan Record (The payload)
+
                 val scanRecord = result.scanRecord ?: return
 
                 val serviceData = scanRecord.getServiceData(SERVICE_UUID)
-                // 3. Validation: Check if data exists and is not empty
+
                 if (serviceData != null) {
                     try {
-                        // 3. Decode: Convert 16 bytes -> java.util.UUID
+                        //  Decode: Convert 16 bytes -> java.util.UUID
                         val buffer = java.nio.ByteBuffer.wrap(serviceData)
                         val mostSigBits = buffer.long
                         val leastSigBits = buffer.long
                         val studentUuid = UUID(mostSigBits, leastSigBits).toString().lowercase()
-
-                        Log.d("BleClient", "✅ Found Student UUID: $studentUuid (RSSI: ${result.rssi})")
 
                         _scanResults.tryEmit(studentUuid)
 
@@ -81,17 +80,16 @@ class BleScanClient(
             }
 
             override fun onScanFailed(errorCode: Int) {
-                Log.e("BleClient", "❌ Scan failed with error: $errorCode")
+                Log.e("BleClient", "Scan failed with error: $errorCode")
                 handleScanFailure(errorCode)
             }
         }
 
         try {
             scanner?.startScan(filters, settings, scanCallback)
-            Log.d("BleClient", "Scan Started cleanly")
-            restartAttempts = 0 // Reset success
+            restartAttempts = 0
         } catch (e: Exception) {
-            Log.e("BleClient", "Native Exception starting scan: ${e.message}")
+            Log.e("BleClient", " Exception starting scan: ${e.message}")
         }
     }
 
@@ -102,10 +100,9 @@ class BleScanClient(
                 scanner?.stopScan(it)
             }
             scanCallback = null
-            Log.d("BleClient", "Scan Stopped.")
+
         } catch (e: Exception) {
-            // Common Android Bug: "BluetoothAdapter is turned off" throws here
-            Log.w("BleClient", "Ignored stop error: ${e.message}")
+            Log.e("BleClient", "Ignored stop error: ${e.message}")
         }
     }
 
@@ -113,16 +110,14 @@ class BleScanClient(
         if (errorCode == ScanCallback.SCAN_FAILED_APPLICATION_REGISTRATION_FAILED) {
             if (restartAttempts < MAX_RETRY_ATTEMPTS) {
                 restartAttempts++
-                Log.w("BleClient", "Attempting recovery #$restartAttempts...")
 
                 scope.launch {
                     stopScanning()
-                    delay(500) // Give the hardware stack 500ms to breathe
+                    delay(500)
                     startScanning()
                 }
             } else {
-                Log.e("BleClient", "Critical: Max retries reached. Giving up.")
-                // In a real app, emit a "SystemError" state to UI here
+                Log.e("BleClient", "Max retries reached. Giving up.")
             }
         }
     }

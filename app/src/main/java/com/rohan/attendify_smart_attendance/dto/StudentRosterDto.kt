@@ -8,7 +8,6 @@ data class StudentRosterDto(
     val name: String,
     val rollNumber: String?
 ) {
-
     fun toRoomEntity(): StudentRosterEntity {
         return StudentRosterEntity(
             studentId = this.studentId,

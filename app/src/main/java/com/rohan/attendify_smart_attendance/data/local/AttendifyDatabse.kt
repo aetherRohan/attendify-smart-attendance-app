@@ -38,13 +38,12 @@ abstract class AttendifyDatabase : RoomDatabase() {
         private var INSTANCE: AttendifyDatabase? = null
 
         fun getDatabase(context: Context): AttendifyDatabase {
-            // If the database already exists, return it.
-            // If it doesn't exist, lock the thread and build it safely.
+
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AttendifyDatabase::class.java,
-                    "attendify_offline_database" // file name on the phone
+                    "attendify_offline_database"
                 )
                     .fallbackToDestructiveMigration(dropAllTables = false)
                     .build()

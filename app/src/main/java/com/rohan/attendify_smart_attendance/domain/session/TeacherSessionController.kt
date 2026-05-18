@@ -30,21 +30,17 @@ class TeacherSessionController(
     private val studentIdNameInCurrentWindow = mutableMapOf<String, String>()
     private val studentsNamesInCurrentWindow = HashSet<String>()
     private val studentsIdsInCurrentWindow = HashSet<String>()
-
-
     private var microCycleCounter = 0
     private var sessionStartTime: Long = 0
-
 
     private fun updateState() {
         teacherRepository.updateStatus(currentStatus)
     }
 
     fun startSession(id: String) {
+
         classId = id
         if (currentStatus.isRunning || classId.isBlank()) return
-
-        Log.i(TAG, "Starting Session: 5-min Windows, One-Hit Threshold")
         sessionStartTime = System.currentTimeMillis()
 
         // Reset local state
@@ -62,19 +58,15 @@ class TeacherSessionController(
         sessionScope.launch {
             delay(MAX_SESSION_DURATION)
             if (currentStatus.isRunning) {
-                Log.i(TAG, "Max session duration reached. Auto-stopping session.")
                 stopSession()
             }
         }
 
         sessionScope.launch {
-
             val studentList = teacherRepository.getStudentsForClass(classId)
-
             studentList.forEach { student ->
                 studentsInClass.put(student.bleUuid, student.name)
             }
-
             while (isActive) {
                 runOneMicroCycle()
             }
@@ -84,7 +76,6 @@ class TeacherSessionController(
 
     fun stopSession() {
         if (!currentStatus.isRunning) return
-        val durationMin = (System.currentTimeMillis() - sessionStartTime) / 60000
 
         currentStatus = currentStatus.copy(
             isRunning = false
@@ -107,34 +98,29 @@ class TeacherSessionController(
                 e.printStackTrace()
                 Log.e("worker", "${e.message}")
             }
-
         }
 
     }
 
-
     private suspend fun runOneMicroCycle() {
-        // ---  SCAN & COLLECT ---
+        //SCAN & COLLECT
         val collectionJob = bleClient.scanResults.onEach { studentBleUuId ->
             dataMutex.withLock {
-                // If student is in the class and  If new for this 5-min window, add them.
                 val studentName = studentsInClass[studentBleUuId]
 
-                if ( studentName !=null && !studentIdNameInCurrentWindow.contains(studentBleUuId)) {
+                if (studentName != null && !studentIdNameInCurrentWindow.contains(studentBleUuId)) {
 
                     studentIdNameInCurrentWindow.put(studentBleUuId, studentName)
                     studentsNamesInCurrentWindow.add(studentName)
                     studentsIdsInCurrentWindow.add(studentBleUuId)
 
-                    Log.i(TAG,"${studentName} id:${studentBleUuId} added to currentWindow")
+                    Log.i(TAG, "${studentName} id:${studentBleUuId} added to currentWindow")
 
                     currentStatus = currentStatus.copy(
                         studentsFoundCount = studentsNamesInCurrentWindow.size,
                         studentList = studentsNamesInCurrentWindow.sorted()
                     )
                     updateState()
-
-                    Log.e("StudentId", studentBleUuId)
                 }
             }
         }.launchIn(sessionScope)
@@ -149,7 +135,7 @@ class TeacherSessionController(
 
         if (microCycleCounter >= CYCLES_PER_WINDOW) {
             // 5 Minutes reached ,send window report
-            syncWindowData(currentWindowIndex, studentsIdsInCurrentWindow.sorted(),classId)
+            syncWindowData(currentWindowIndex, studentsIdsInCurrentWindow.sorted(), classId)
 
             // Reset for next 5-min block
             microCycleCounter = 0
@@ -164,22 +150,14 @@ class TeacherSessionController(
         delay(REST_DURATION)
     }
 
-    //  call the local db and inc the window hit
-    private fun syncWindowData(index: Int, students: List<String>,currentClassId: String) {
+    //  Call the local db and inc the window hit
+    private fun syncWindowData(index: Int, students: List<String>, currentClassId: String) {
 
         sessionScope.launch {
-            Log.i(
-                TAG,
-                "Syncing WINDOW #$index to local database | Students found: ${students.size}"
-            )
-
             try {
                 teacherRepository.recordCurrentWindowAttendance(
                     classId = currentClassId, windowIndex = index, scannedStudents = students
                 )
-
-                Log.i(TAG, "Window #$index successfully saved to db")
-
             } catch (e: Exception) {
 
                 Log.e(TAG, "CRITICAL: Failed to sync window #$index data: ${e.message}", e)
@@ -187,12 +165,9 @@ class TeacherSessionController(
         }
     }
 
-    private fun addToPendingSession(index: Int, students: List<String>,classId: String) {
+    private fun addToPendingSession(index: Int, students: List<String>, classId: String) {
 
-        syncWindowData(index = index, students = students,classId)
-        Log.i(TAG, "FINAL SYNC WITH DB DONE before adding to coroutine worker")
-
-
+        syncWindowData(index = index, students = students, classId)
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
@@ -201,17 +176,12 @@ class TeacherSessionController(
             .setConstraints(constraints)
             .build()
 
-
         WorkManager.getInstance(context).enqueueUniqueWork(
             "Offline_Attendance_Sync",
             ExistingWorkPolicy.APPEND_OR_REPLACE,
             syncWorkRequest
         )
-        Log.i("worker","added to pending session offline sync")
     }
-
-
-
 
 
     companion object {

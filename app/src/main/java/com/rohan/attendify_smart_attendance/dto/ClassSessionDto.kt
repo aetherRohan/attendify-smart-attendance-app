@@ -8,7 +8,6 @@ data class ClassSessionDto(
     val classId: String,
     val date: String,
 ) {
-
     fun toRoomEntity(): ClassSessionEntity {
         return ClassSessionEntity(
             classSessionId = this.classSessionId,

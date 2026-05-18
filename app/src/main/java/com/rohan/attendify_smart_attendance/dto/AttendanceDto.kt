@@ -12,7 +12,6 @@ data class AttendanceDto(
     val rollNumber: String?,
 
 ){
-
     fun toRoomEntity(): AttendanceEntity{
        return AttendanceEntity(
            classId = this.classId,
@@ -24,5 +23,4 @@ data class AttendanceDto(
            rollNumber = this.rollNumber?:"",
        )
     }
-
 }
