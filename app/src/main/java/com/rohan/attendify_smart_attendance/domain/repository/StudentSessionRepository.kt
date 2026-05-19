@@ -1,8 +1,8 @@
-package com.rohan.attendify_smart_attendance.repository
+package com.rohan.attendify_smart_attendance.domain.repository
 
 import android.util.Log
 import androidx.room.withTransaction
-import com.rohan.attendify_smart_attendance.api.ApiService
+import com.rohan.attendify_smart_attendance.data.remote.api.ApiService
 import com.rohan.attendify_smart_attendance.data.local.AttendifyDatabase
 import com.rohan.attendify_smart_attendance.data.local.dao.AttendanceDao
 import com.rohan.attendify_smart_attendance.data.local.dao.ClassDao
@@ -10,14 +10,11 @@ import com.rohan.attendify_smart_attendance.data.local.entity.AttendanceEntity
 import com.rohan.attendify_smart_attendance.data.local.entity.ClassEntity
 import com.rohan.attendify_smart_attendance.domain.session.StudentSessionController
 import com.rohan.attendify_smart_attendance.security.TokenManager
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.onStart
 
 class StudentSessionRepository(
     private val classDao: ClassDao,

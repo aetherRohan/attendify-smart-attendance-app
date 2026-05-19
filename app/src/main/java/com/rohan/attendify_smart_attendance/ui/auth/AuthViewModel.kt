@@ -5,10 +5,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
-import com.rohan.attendify_smart_attendance.dto.ErrorResponse
-import com.rohan.attendify_smart_attendance.dto.LoginResponse
+import com.rohan.attendify_smart_attendance.data.remote.dto.ErrorResponse
+import com.rohan.attendify_smart_attendance.data.remote.dto.LoginResponse
 import com.rohan.attendify_smart_attendance.enums.UserRole
-import com.rohan.attendify_smart_attendance.repository.AuthRepository
+import com.rohan.attendify_smart_attendance.domain.repository.AuthRepository
 import com.rohan.attendify_smart_attendance.security.TokenManager
 import com.rohan.attendify_smart_attendance.utils.Resource
 import kotlinx.coroutines.flow.MutableStateFlow

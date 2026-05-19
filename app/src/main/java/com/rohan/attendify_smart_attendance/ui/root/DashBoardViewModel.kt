@@ -5,8 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.rohan.attendify_smart_attendance.data.local.entity.ClassEntity
-import com.rohan.attendify_smart_attendance.repository.StudentSessionRepository
-import com.rohan.attendify_smart_attendance.repository.TeacherSessionRepository
+import com.rohan.attendify_smart_attendance.domain.repository.StudentSessionRepository
+import com.rohan.attendify_smart_attendance.domain.repository.TeacherSessionRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow

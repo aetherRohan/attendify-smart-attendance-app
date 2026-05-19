@@ -1,16 +1,15 @@
-package com.rohan.attendify_smart_attendance.api
+package com.rohan.attendify_smart_attendance.data.remote.api
 
-import com.rohan.attendify_smart_attendance.data.local.entity.AttendanceEntity
-import com.rohan.attendify_smart_attendance.dto.AttendanceDto
+import com.rohan.attendify_smart_attendance.data.remote.dto.AttendanceDto
 import retrofit2.http.Query
-import com.rohan.attendify_smart_attendance.dto.ClassDto
-import com.rohan.attendify_smart_attendance.dto.ClassSessionDto
-import com.rohan.attendify_smart_attendance.dto.CreateClassRequest
-import com.rohan.attendify_smart_attendance.dto.LoginRequest
-import com.rohan.attendify_smart_attendance.dto.LoginResponse
-import com.rohan.attendify_smart_attendance.dto.SessionSyncRequest
-import com.rohan.attendify_smart_attendance.dto.SignupRequest
-import com.rohan.attendify_smart_attendance.dto.StudentRosterDto
+import com.rohan.attendify_smart_attendance.data.remote.dto.ClassDto
+import com.rohan.attendify_smart_attendance.data.remote.dto.ClassSessionDto
+import com.rohan.attendify_smart_attendance.data.remote.dto.CreateClassRequest
+import com.rohan.attendify_smart_attendance.data.remote.dto.LoginRequest
+import com.rohan.attendify_smart_attendance.data.remote.dto.LoginResponse
+import com.rohan.attendify_smart_attendance.data.remote.dto.SessionSyncRequest
+import com.rohan.attendify_smart_attendance.data.remote.dto.SignupRequest
+import com.rohan.attendify_smart_attendance.data.remote.dto.StudentRosterDto
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET

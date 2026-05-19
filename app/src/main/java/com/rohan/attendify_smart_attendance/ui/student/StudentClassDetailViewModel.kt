@@ -8,13 +8,11 @@ import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.rohan.attendify_smart_attendance.data.local.entity.AttendanceEntity
-import com.rohan.attendify_smart_attendance.repository.StudentSessionRepository
-import com.rohan.attendify_smart_attendance.ui.teacher.sessionDetails.TeacherClassSessionDetailsViewModel
+import com.rohan.attendify_smart_attendance.domain.repository.StudentSessionRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 

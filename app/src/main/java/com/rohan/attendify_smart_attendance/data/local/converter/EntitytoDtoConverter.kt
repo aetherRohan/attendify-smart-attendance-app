@@ -1,7 +1,7 @@
 package com.rohan.attendify_smart_attendance.data.local.converter
 
 import com.rohan.attendify_smart_attendance.data.local.entity.PendingSessionEntity
-import com.rohan.attendify_smart_attendance.dto.SessionSyncRequest
+import com.rohan.attendify_smart_attendance.data.remote.dto.SessionSyncRequest
 
 fun toSessionSyncDtoReq(pendingSessionEntity: List<PendingSessionEntity>): List<SessionSyncRequest>{
 

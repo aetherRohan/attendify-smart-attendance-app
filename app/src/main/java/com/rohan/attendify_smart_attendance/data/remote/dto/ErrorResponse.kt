@@ -1,4 +1,4 @@
-package com.rohan.attendify_smart_attendance.dto
+package com.rohan.attendify_smart_attendance.data.remote.dto
 
 import com.google.gson.annotations.SerializedName
 

@@ -8,7 +8,7 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.rohan.attendify_smart_attendance.data.ble.BleScanClient
-import com.rohan.attendify_smart_attendance.repository.TeacherSessionRepository
+import com.rohan.attendify_smart_attendance.domain.repository.TeacherSessionRepository
 import com.rohan.attendify_smart_attendance.worker.SyncSessionWorker
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.launchIn

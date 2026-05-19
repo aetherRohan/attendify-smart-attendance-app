@@ -1,10 +1,10 @@
-package com.rohan.attendify_smart_attendance.repository
+package com.rohan.attendify_smart_attendance.domain.repository
 
-import com.rohan.attendify_smart_attendance.api.ApiService
+import com.rohan.attendify_smart_attendance.data.remote.api.ApiService
 import com.rohan.attendify_smart_attendance.data.local.AttendifyDatabase
-import com.rohan.attendify_smart_attendance.dto.LoginRequest
-import com.rohan.attendify_smart_attendance.dto.LoginResponse
-import com.rohan.attendify_smart_attendance.dto.SignupRequest
+import com.rohan.attendify_smart_attendance.data.remote.dto.LoginRequest
+import com.rohan.attendify_smart_attendance.data.remote.dto.LoginResponse
+import com.rohan.attendify_smart_attendance.data.remote.dto.SignupRequest
 import com.rohan.attendify_smart_attendance.security.TokenManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

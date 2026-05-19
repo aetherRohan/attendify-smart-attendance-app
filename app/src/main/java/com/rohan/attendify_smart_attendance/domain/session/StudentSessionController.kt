@@ -3,7 +3,7 @@ package com.rohan.attendify_smart_attendance.domain.session
 import android.util.Log
 import com.rohan.attendify_smart_attendance.data.ble.BleBroadcastClient
 
-import com.rohan.attendify_smart_attendance.repository.StudentSessionRepository
+import com.rohan.attendify_smart_attendance.domain.repository.StudentSessionRepository
 import kotlinx.coroutines.*
 
 class StudentSessionController(

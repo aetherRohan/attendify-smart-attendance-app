@@ -1,4 +1,4 @@
-package com.rohan.attendify_smart_attendance.api
+package com.rohan.attendify_smart_attendance.data.remote.api
 
 import android.content.Context
 import com.rohan.attendify_smart_attendance.security.TokenAuthenticator

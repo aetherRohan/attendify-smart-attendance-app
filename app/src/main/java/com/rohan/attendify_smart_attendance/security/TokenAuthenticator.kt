@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import com.rohan.attendify_smart_attendance.MainActivity
-import com.rohan.attendify_smart_attendance.api.ApiService
 import kotlinx.coroutines.runBlocking
 import okhttp3.Authenticator
 import okhttp3.MediaType.Companion.toMediaType

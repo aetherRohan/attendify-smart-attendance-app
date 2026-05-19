@@ -10,7 +10,7 @@ import android.util.Log
 import com.rohan.attendify_smart_attendance.AttendifyApplication
 import com.rohan.attendify_smart_attendance.data.ble.BleScanClient
 import com.rohan.attendify_smart_attendance.domain.session.TeacherSessionController
-import com.rohan.attendify_smart_attendance.repository.TeacherSessionRepository
+import com.rohan.attendify_smart_attendance.domain.repository.TeacherSessionRepository
 import com.rohan.attendify_smart_attendance.utils.NotificationHelper // <--- Import this
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

@@ -10,7 +10,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.rohan.attendify_smart_attendance.dto.LoginResponse
+import com.rohan.attendify_smart_attendance.data.remote.dto.LoginResponse
 import com.rohan.attendify_smart_attendance.ui.auth.AuthViewModel
 import com.rohan.attendify_smart_attendance.ui.auth.LoginRoute
 import com.rohan.attendify_smart_attendance.ui.auth.SessionState

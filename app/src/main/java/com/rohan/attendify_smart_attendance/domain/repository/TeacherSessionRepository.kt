@@ -1,9 +1,9 @@
-package com.rohan.attendify_smart_attendance.repository
+package com.rohan.attendify_smart_attendance.domain.repository
 
 
 import android.util.Log
 import androidx.room.withTransaction
-import com.rohan.attendify_smart_attendance.api.ApiService
+import com.rohan.attendify_smart_attendance.data.remote.api.ApiService
 import com.rohan.attendify_smart_attendance.data.local.AttendifyDatabase
 import com.rohan.attendify_smart_attendance.data.local.dao.AttendanceDao
 import com.rohan.attendify_smart_attendance.data.local.dao.ClassDao
@@ -16,7 +16,7 @@ import com.rohan.attendify_smart_attendance.data.local.entity.ClassSessionEntity
 import com.rohan.attendify_smart_attendance.data.local.entity.PendingSessionEntity
 import com.rohan.attendify_smart_attendance.data.local.entity.StudentRosterEntity
 import com.rohan.attendify_smart_attendance.domain.session.TeacherSessionController
-import com.rohan.attendify_smart_attendance.dto.CreateClassRequest
+import com.rohan.attendify_smart_attendance.data.remote.dto.CreateClassRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
