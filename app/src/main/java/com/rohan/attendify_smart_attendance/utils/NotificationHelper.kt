@@ -22,10 +22,8 @@ object NotificationHelper {
         //Create Channel
         createChannel(context)
 
-        // Determine Title based on Role
         val title = if (isTeacher) "Class Session Active" else "Attendance Active"
 
-        // 3. Build Notification
         return NotificationCompat.Builder(context, CHANNEL_ID)
             .setContentTitle(title)
             .setContentText(statusText)
@@ -33,7 +31,7 @@ object NotificationHelper {
             .setOngoing(true) // User cannot swipe away
             .setOnlyAlertOnce(true)
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
-            .setPriority(NotificationCompat.PRIORITY_LOW) // Low priority = no popup overlay
+            .setPriority(NotificationCompat.PRIORITY_LOW)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .build()
     }
@@ -41,11 +39,10 @@ object NotificationHelper {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val manager = context.getSystemService(NotificationManager::class.java)
 
-            // Create/Update channel
             val channel = NotificationChannel(
                 CHANNEL_ID,
                 CHANNEL_NAME,
-                NotificationManager.IMPORTANCE_LOW // Low = No sound/popup
+                NotificationManager.IMPORTANCE_LOW
             ).apply {
                 description = "Shows when an attendance session is active"
             }

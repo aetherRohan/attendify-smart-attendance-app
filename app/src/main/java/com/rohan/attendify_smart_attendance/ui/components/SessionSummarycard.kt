@@ -15,13 +15,13 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun SessionSummaryCard(
     className: String,
-    classSection: String, // Added classSection
+    classSection: String,
     sessionDate: String,
     presentCount: Int,
     absentCount: Int,
     totalStudents: Int
 ) {
-    // A subtle, modern Gen-Z aesthetic gradient (Light Blue to Light Indigo)
+
     val cardGradient = Brush.linearGradient(
         colors = listOf(
             Color(0xFFEBF4FF),
@@ -33,7 +33,7 @@ fun SessionSummaryCard(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent) // Make transparent to show gradient
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
     ) {
         // Box handles the gradient background
         Box(
@@ -44,7 +44,7 @@ fun SessionSummaryCard(
             Column(
                 modifier = Modifier.padding(20.dp)
             ) {
-                // Class Name & Section dynamically combined
+                // Class Name & Section
                 val titleText = if (classSection.isNotBlank()) "$className - $classSection" else className
 
                 Text(
@@ -65,23 +65,20 @@ fun SessionSummaryCard(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Chart & Stats Row
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween // Prevents overlap
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    // Left: Dynamic Donut Chart
+
                     AttendanceDonutChart(
                         present = presentCount,
                         absent = absentCount,
                         modifier = Modifier.size(110.dp)
                     )
 
-                    Spacer(modifier = Modifier.width(16.dp)) // Added buffer space
+                    Spacer(modifier = Modifier.width(16.dp))
 
-                    // Right: Stats Column
-                    // using weight(1f) forces this column to stay on the right side without squishing the chart
                     Column(
                         modifier = Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(12.dp)

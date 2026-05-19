@@ -27,7 +27,7 @@ fun AttendanceDonutChart(present: Int, absent: Int, modifier: Modifier = Modifie
 
             // Background Arc (Absent - Red)
             drawArc(
-                color = Color(0xFFFEE2E2), // Very Light Red background
+                color = Color(0xFFFEE2E2),
                 startAngle = 0f,
                 sweepAngle = 360f,
                 useCenter = false,

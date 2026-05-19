@@ -34,7 +34,7 @@ class MainActivity : ComponentActivity() {
                 Surface(
                     modifier = Modifier
                         .fillMaxSize()
-                        .windowInsetsPadding(WindowInsets.systemBars), // <-- add this
+                        .windowInsetsPadding(WindowInsets.systemBars),
                     color = MaterialTheme.colorScheme.background
                 ) {
                     RootScreen(
@@ -47,7 +47,6 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
 
     private fun navigateTo(activityClass: Class<*>, name: String, role: String, id: String) {
         val intent = Intent(this, activityClass).apply {
