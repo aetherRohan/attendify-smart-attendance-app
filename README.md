@@ -13,7 +13,7 @@ Attendify is a secure, BLE-driven Android application that automates classroom a
 
 > **🔗 Backend Repository**
 > The server-side API, database schema, and sync endpoints live in a separate repository.
-> **→ [attendify-backend](https://github.com/your-org/attendify-backend)** — Node.js / REST API powering the sync layer.
+> **→ [attendify-backend](https://github.com/aetherRohan/attendify-backend-server)** — Spring Boot / REST API powering the sync layer.
 
 ---
 
